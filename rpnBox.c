@@ -29,6 +29,7 @@ int unbox_val(d64 nanbox) {return (int32_t)(nanbox.ubox);}
 
 int get_tag(d64 nanbox) {return (int32_t)(nanbox.ubox >> 48);}
 
+
 void push(double* stack, int* sp, double nanbox)
 {
     stack[++(*sp)] = nanbox;

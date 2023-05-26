@@ -101,23 +101,32 @@ double* read_input(FILE* fp, int* call_size)
 
 int is_num(double x){return x == x;}
 
-void execute(stack stack, int call_size)
+double add(double a, double b) {return b + a;}
+double sub(double a, double b) {return b - a;}
+double divide(double a, double b) {return b / a;}
+double mult(double a, double b) {return b * a;}
+
+int execute(stack* stack, int call_size)
 {
-    int sp = 0;
+    int sp = -1;
+    double (*func[4]) (double a, double b);
+    func[0] = add; 
+    func[1] = sub;
+    func[2] = divide;
+    func[3] = mult; 
     
     for(int call_idx = 0; call_idx < call_size; call_idx++)
     {
-        if(is_num(stack.call[call_idx]))
-            push(stack.stack, &sp, stack.call[call_idx]);
+        if(is_num(stack -> call[call_idx]))
+            push(stack -> stack, &sp, stack -> call[call_idx]);
         else
         {
-            int op = get_operator(stack.call[call_idx]);
-            printf("%d ", op);
-
-
-        }
-
-        
+            double a = pop(stack -> stack, &sp);
+            double b = pop(stack -> stack, &sp);
+            double val = func[get_operator(stack -> call[call_idx])] (a,b);            
+            push(stack -> stack, &sp, val);
+        } 
     }
+    return sp;
 }
 

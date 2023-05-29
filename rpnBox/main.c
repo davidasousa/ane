@@ -29,7 +29,26 @@ int main(int argc, char* argv[])
 // Questions: 
 //
 // 1. Function Pointers In A Heap - Why? And What Is The Ordering / Functionality Of The Heap 
+// - We want the ability to define our own functions
+// - Priority is more oftenly used functions
 //
-// 2. What Should Be In Main, How To Divide C Files/ Number Of Lines In One C File
+// 2. What Should Be In Main, How To Divide C Files
+// - Interpreter, can have multiple instances each with its own pointer, stakc & heap
 //
 // 3. Read String -> Place Contents In Call Array (doubles) -> Execute On Stack (doubles), Is This Ordering Correct
+//
+// Make the interpreter parameter just a string with \0
+//
+// Errors:
+// Pop Non existant values
+// Only one value should be on stack
+//
+// Shell Script
+// Acutest
+// 
+// Function Definition For ^2
+// : sq dup * ; 9.5 sq 5 sq +
+//
+// For Defined Functions Source them from the heap than return the instruction pointer to its original pos
+//
+// 3 [ dup * ] I = 9 

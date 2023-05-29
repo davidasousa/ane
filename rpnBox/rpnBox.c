@@ -106,6 +106,10 @@ double sub(double a, double b) {return b - a;}
 double divide(double a, double b) {return b / a;}
 double mult(double a, double b) {return b * a;}
 
+// The arithmatic methods should take the stack and pop from within those function
+// dup swap zap
+// Functions take the stack pointer
+
 int execute(stack* stack, int call_size)
 {
     int sp = -1;

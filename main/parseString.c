@@ -9,8 +9,7 @@
 #ifndef PARSESTRING
 #define PARSESTRING
 
-double* read_input(char* input, int* call_size)
-{
+double* read_input(char* input, int* call_size) {
     double* call = malloc(sizeof(*call) * 1000);
     int call_pointer = 0;
     
@@ -23,26 +22,47 @@ double* read_input(char* input, int* call_size)
             sp += chars;
             call[call_pointer++] = val;
         }
-        else { 
+        else { // Better Way Of Doing This? Note: Write Things Down
             switch(*sp) {
+                case ' ':
+                    break;
                 case '+':
-                    call[call_pointer++] = makeBox(PLUS);
+                    call[call_pointer++] = makeBox(PLUS, OPERATION);
                     break;
                 case '-':
-                    call[call_pointer++] = makeBox(MINUS);
+                    call[call_pointer++] = makeBox(MINUS, OPERATION);
                     break;
                 case '*':
-                    call[call_pointer++] = makeBox(MULTIPLY);
+                    call[call_pointer++] = makeBox(MULTIPLY, OPERATION);
                     break;
                 case '/':
-                    call[call_pointer++] = makeBox(DIVIDE);
+                    call[call_pointer++] = makeBox(DIVIDE, OPERATION);
                     break;
+                default:
+                    char arg[10];
+                    int chars;
+                    sscanf(sp, "%s%n", arg, &chars);
+                    sp += chars;
+
+                    if(strcmp(arg, "dup") == 0) // Better Way Of Doing This 
+                        call[call_pointer++] = makeBox(DUP, PDF);
+                    if(strcmp(arg, "swap") == 0)
+                        call[call_pointer++] = makeBox(SWAP, PDF);
+                    if(strcmp(arg, "zap") == 0)
+                        call[call_pointer++] = makeBox(ZAP, PDF);
             }
             sp++; 
         }
     }
 
     *call_size = call_pointer;
+
+    if(call_pointer < 2) {
+        free(call);
+        return NULL; // Error Checking
+    }
+
+
     return call;
 }
 

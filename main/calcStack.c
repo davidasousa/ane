@@ -59,13 +59,12 @@ static void duplicate(double* stack, int* sp) {
 }
 
 static void zap(double* stack, int* sp) {
-    stack[*sp] = 0;
     (*sp)--;
     return;
 }
 
 /*
-static void swap(double* stack, int* sp) {
+static void swap(double* stack, int* sp) { //uncomment swap and see what happens
     double copy = stack[*sp];
     stack[*sp] = stack[*(sp - 1)];
     stack[*(sp - 1)] = copy;
@@ -84,7 +83,7 @@ int execute(stack* stack, int call_size) {
     operation[0] = add; operation[1] = sub; operation[2] = divide; operation[3] = mult; 
 
     void (*stack_func[1]) (double* a, int* b);
-    stack_func[0] = duplicate; stack_func[2] = zap;
+    stack_func[0] = duplicate; /*stack_func[1] = swap;*/ stack_func[2] = zap; // stack func 0
 
     for(int call_idx = 0; call_idx < call_size; call_idx++) {
         if(is_num(stack -> call[call_idx]))

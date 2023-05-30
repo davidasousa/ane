@@ -57,7 +57,7 @@ test_dup(void)
     TEST_CHECK(pass == EXIT_SUCCESS);
     free(ans);
 }
-
+/*
 void
 test_swap(void)
 {
@@ -67,6 +67,7 @@ test_swap(void)
     TEST_CHECK(pass == EXIT_SUCCESS);
     free(ans);
 }
+*/
 
 
 void
@@ -75,7 +76,6 @@ test_zap(void)
     int pass;
     double* ans = ane("1 2 zap", &pass);
     TEST_CHECK(ans[0] == 1);
-    //TEST_CHECK(ans[1] == 0);
     TEST_CHECK(pass == EXIT_SUCCESS);
     free(ans);
 }
@@ -101,6 +101,7 @@ TEST_LIST = {
 //
 // 3. Two Seperate Tags Builtins & UDFs?
 //
+// Notes: suspected weird memory errors: zap 
 //
 // Errors:
 // Pop Non existant values

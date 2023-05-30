@@ -1,5 +1,8 @@
-test: main.c calcStack.c parseString.c
-	gcc main.c -lm -ggdb3 -o calc
+test: testFile.c
+	gcc testFile.c -lm -ggdb3 -o test
 
-run: calc
-	valgrind ./calc input_file
+run:
+	./test
+
+valgrind:
+	valgrind --track-origins=yes --leak-check=full ./test

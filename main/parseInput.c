@@ -1,5 +1,22 @@
 #include "ane.h"
 
+double
+process_func(const char* func) { // Will take both prebuilts and udfs
+    make_math_ops(); 
+    char* builtins[3] = {"dup", "swap", "zap"};
+
+    for(int idx = 0; idx < 3; idx++) {
+       if(strcmp(func, builtins[idx]) == 0) 
+           return makeBox(idx, PREBUILT);
+    }
+    for(int idx = 0; idx < 4; idx++) {
+       if(strcmp(func, math_ops[idx]) == 0) 
+           return makeBox(idx, OPERATION);
+    }
+    return -1;
+}
+// FIX ARRAY ASSIGNMENT FOR THE HELPER FUNCTION
+
 double* 
 parseInput(const char* input, int* call_size) {
     double* call = malloc(sizeof(*call) * 1000);
@@ -11,28 +28,22 @@ parseInput(const char* input, int* call_size) {
     int char_elapsed;
     char arg[100];
     while(*sp != '\0') {
-        printf("%c ", *sp);
+        char_elapsed = 0;
 
-        if(*sp >= '0' && *sp <= '9') {
-
+        if(*sp == ' ')
+            sp++;
+        else if(*sp >= '0' && *sp <= '9') {
             sscanf(sp, "%lg%n", &val, &char_elapsed);
             sp += char_elapsed;
             call[call_pointer++] = val;
         }
         else {
-            if(*sp == ' ') // Moving On If We Are At A Space
-                break;
-
             sscanf(sp, "%s%n", arg, &char_elapsed);
             sp += char_elapsed;
 
-            if(strcmp(arg, "dup") == 0)
-                call[call_pointer++] = makeBox(DUP, PREBUILT);
-            
-            sp++;
+            call[call_pointer++] = process_func(arg);
             }
         }
-        printf("\n");
         *call_size = call_pointer;
         return call; 
-    }
+}

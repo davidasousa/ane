@@ -3,10 +3,10 @@
 double
 process_func(const char* func) { // Will take both prebuilts and udfs
     make_math_ops(); 
-    char* builtins[3] = {"dup", "swap", "zap"};
+    make_prebuilt_ops();
 
     for(int idx = 0; idx < 3; idx++) {
-       if(strcmp(func, builtins[idx]) == 0) 
+       if(strcmp(func, prebuilt_ops[idx]) == 0) 
            return makeBox(idx, PREBUILT);
     }
     for(int idx = 0; idx < 4; idx++) {

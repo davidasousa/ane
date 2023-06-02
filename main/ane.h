@@ -51,11 +51,11 @@ get_tag(double nanbox);
 double* 
 parseInput(const char* input, int* call_size);
 
-int // Returns the size of the stack at finish
-calcStack(callStack* stack, int call_size);
+void // Returns the size of the stack at finish
+calcStack(callStack* stack, int call_size, int* sp);
 
 double* 
-ane(const char* input, int* valid_pass);
+ane(FILE* input, int* valid_pass);
 // The Ane function returns the stack at completion
 
 #endif

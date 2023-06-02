@@ -32,12 +32,14 @@ parseInput(const char* input, int* call_size) {
 
         if(*sp == ' ')
             sp++;
-        else if(*sp >= '0' && *sp <= '9') {
+        else if(*sp == ':') {
+            printf("UDF\n"); // creation of the udf
+            sp++;
+        } else if(*sp >= '0' && *sp <= '9') {
             sscanf(sp, "%lg%n", &val, &char_elapsed);
             sp += char_elapsed;
             call[call_pointer++] = val;
-        }
-        else {
+        } else {
             sscanf(sp, "%s%n", arg, &char_elapsed);
             sp += char_elapsed;
 

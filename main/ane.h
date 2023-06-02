@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef ANE
-#define ANE
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -13,11 +10,11 @@
 
 struct stack;
 
-extern union 
+union 
 d64 {
     double nbox; // nbox is the nanbox itself - cannot be operated on must be casted
     uint64_t ubox; // ubox is the casted form meant for operations on bits
-} d64;
+};
 
 typedef struct 
 callStack {
@@ -28,16 +25,12 @@ callStack {
 double 
 makeBox(uint32_t op, uint32_t tag);
 
-extern enum tag_type { OPERATION = 0x7ff8, PREBUILT, USERDEF } tag_type; // nantag 
-extern enum error {ERROR = -1} error;
+enum tag_type { OPERATION = 0x7ff8, PREBUILT, USERDEF }; // nantag 
+enum error {ERROR = -1};
 
-extern enum prebuilt_type { DUP = 0, SWAP, ZAP} prebuilt_type;
-extern const char* prebuilt_ops[];
-void make_prebuilt_ops();
+enum prebuilt_type { DUP, SWAP, ZAP};
 
-extern enum math_op_type { PLUS = 0, MINUS, MULTIPLY, DIVIDE } math_op_type;
-extern const char* math_ops[]; // Array Relates The Strings To The Enums
-void make_math_ops();
+enum math_op_type { PLUS, MINUS, MULTIPLY, DIVIDE };
 
 double
 makeBox(uint32_t op, uint32_t tag);
@@ -57,6 +50,4 @@ calcStack(callStack* stack, int call_size, int* sp);
 double* 
 ane(FILE* input, int* valid_pass);
 // The Ane function returns the stack at completion
-
-#endif
 

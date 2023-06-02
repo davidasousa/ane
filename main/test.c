@@ -1,5 +1,5 @@
-#include "acutest.h"
-#include "ane.h"
+#include <acutest.h>
+#include <ane.h>
 
 void 
 test_nanbox(void) {

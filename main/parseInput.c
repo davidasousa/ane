@@ -1,10 +1,20 @@
-#include "ane.h"
+#include <ane.h>
+
+static const char* prebuilt_ops[] = {
+    [DUP] = "dup",
+    [SWAP] = "swap",
+    [ZAP] = "zap"
+};
+
+static const char* math_ops[] = {
+    [PLUS] = "+",
+    [MINUS] = "-",
+    [MULTIPLY] = "*",
+    [DIVIDE] = "/"
+};
 
 double
 process_func(const char* func) { // Will take both prebuilts and udfs
-    make_math_ops(); 
-    make_prebuilt_ops();
-
     for(int idx = 0; idx < 3; idx++) {
        if(strcmp(func, prebuilt_ops[idx]) == 0) 
            return makeBox(idx, PREBUILT);

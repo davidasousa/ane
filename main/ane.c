@@ -1,4 +1,26 @@
-#include <ane.h>
+#include "ane.h"
+
+// QUESTION: how to test a file inputted test - testing ane full itself <-
+//
+// ADD: udfs within udfs 
+// udf loading 
+// error testing 
+// fix exescive memory allocations throughout
+// error messaging 
+
+static void
+save_udfs(UDF* udfs[], int udf_count, FILE* fp) {
+    fprintf(fp, "%d\n", udf_count);
+    for(int udf_idx = 0; udf_idx < udf_count; udf_idx++) {
+        double* function = udfs[udf_idx] -> function;
+        fprintf(fp, "%s,%d", udfs[udf_idx] -> name, udfs[udf_idx] -> args);
+        for(int arg_idx = 0; arg_idx < udfs[udf_idx] -> args; arg_idx++)
+            fprintf(fp, "%lu", (uint64_t)function[arg_idx]);
+        fprintf(fp, "\n");
+    }
+}
+
+// load udfs
 
 double* 
 ane(FILE* stream, int* valid_pass) {
@@ -6,9 +28,8 @@ ane(FILE* stream, int* valid_pass) {
     callStack stack;
     int sp = -1;
 
-    // This is where the udfs will be stored - makes sense?
-    // udf function will take the sp - compile and store the udf in the structure present here in ane each udf is an array of doubles containing the resective steps of the udf
-    //double* udfs[10]; // this will be a param passed into calcstack
+    UDF** udfs = malloc(sizeof(*udfs) * 10);
+    int udfs_count = 0;
 
     // Save the process into a file to be brought later
     
@@ -19,7 +40,7 @@ ane(FILE* stream, int* valid_pass) {
             break;
 
         int call_size = 0;
-        stack.call = parseInput(str, &call_size);
+        stack.call = parseInput(str, &call_size, udfs, &udfs_count);
         calcStack(&stack, call_size, &sp);
 
         for(int idx = 0; idx <= sp; idx++)
@@ -28,6 +49,17 @@ ane(FILE* stream, int* valid_pass) {
         free(stack.call);
         // stack call is malloced and freed everytime- fix this FIX
     }
+    FILE* fp = fopen("udfs.txt", "w"); // This can become its own function later
+    save_udfs(udfs, udfs_count, fp);
+    fclose(fp);
+
+    for(int idx = 0; idx < udfs_count; idx++) {
+        free(udfs[idx] -> function);
+        free(udfs[idx] -> name);
+        free(udfs[idx]);
+    }
+    free(udfs);
+
     printf("ANE Closed Successfully");
 
     return NULL;

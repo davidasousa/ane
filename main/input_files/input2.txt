@@ -1,0 +1,11 @@
+: sq dup * ;
+2 sq sq
+3 +
+zap
+: quad 4 * ;
+4 quad
+zap
+5 quad sq ;
+zap
+: combo sq quad ;
+q

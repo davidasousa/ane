@@ -8,8 +8,6 @@
 #include <stdint.h>
 #include <string.h>
 
-struct stack;
-
 union 
 d64 {
     double nbox; // nbox is the nanbox itself - cannot be operated on must be casted
@@ -21,6 +19,13 @@ callStack {
     double* call;
     double stack[1000];
 } callStack;
+
+typedef struct
+UDF {
+    double* function;
+    char* name;
+    int args;
+} UDF;
 
 double 
 makeBox(uint32_t op, uint32_t tag);
@@ -42,7 +47,7 @@ uint32_t
 get_tag(double nanbox);
 
 double* 
-parseInput(const char* input, int* call_size);
+parseInput(const char* input, int* call_size, UDF** udfs, int* udf_count);
 
 void // Returns the size of the stack at finish
 calcStack(callStack* stack, int call_size, int* sp);

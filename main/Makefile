@@ -1,4 +1,4 @@
-CC = gcc
+CC = gcc 
 CFLAGS = -g -I. -Wall -ggdb3 -Wshadow -Wvla -Werror -pedantic # -I. includes all files in the current directory
 
 all: ane.o nanbox.o test.o parseInput.o calcStack.o test ## Make The Target File To Be Ran
@@ -18,7 +18,7 @@ calcStack.o: calcStack.c
 test.o: test.c
 	$(CC) ${CFLAGS} test.c -c
 
-test: ane.o test.o nanbox.o parseInput.o ## Building & Linking The Test Executable Together
+test: ane.o test.o nanbox.o parseInput.o calcStack.o ## Building & Linking The Test Executable Together
 	$(CC) ${CFLAGS} test.o ane.o nanbox.o parseInput.o calcStack.o -o test -lm
 
 check: test

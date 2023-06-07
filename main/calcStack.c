@@ -27,12 +27,18 @@ divide(double a, double b) {return b / a;}
 //
 
 static void
-run_math(callStack* stack, int* sp, double arg) {
+run_math(callStack* stack, int* sp, double arg, FILE* fp) {
     double (*math_op[4]) (double a, double b);
     math_op[0] = add; math_op[1] = sub; math_op[2] = mult; math_op[3] = divide;
 
     double a = pop(stack -> stack, &(*sp));
     double b = pop(stack -> stack, &(*sp));
+
+    if(*sp < -1) { // popping non existant value
+        fprintf(fp, "Error: Not Enough Values In Stack To Pop");
+        return;
+    }
+
     push(stack -> stack, &(*sp), math_op[get_op(arg)] (a, b));
     return;
 }
@@ -66,15 +72,37 @@ run_prebuilt(callStack* stack, int* sp, double arg) {
     return;
 }
 
+static void
+run_string_op(double* stack, int* sp, char* strings, int* string_pos) { // this code is shit
+
+    double cdrNan = pop(stack, &(*sp));
+    double conNan = pop(stack, &(*sp));
+    int a = get_op(cdrNan);
+    int b = get_op(conNan);
+    char con[100];
+    char cdr[100];
+    strcpy(con, strings + b);
+    strcpy(cdr, strings + a);
+    strcat(con, cdr);
+    strcpy(strings + *string_pos, con);
+    push(stack, &(*sp), makeBox(*string_pos, STRING));
+    *string_pos += strlen(con) + 1;
+    return;
+}
+
 void
-calcStack(callStack* stack, int call_size, int* sp) {
+calcStack(callStack* stack, int call_size, int* sp, FILE* output, char* strings, int* string_pos) {
     for(int call_idx = 0; call_idx < call_size; call_idx++) {
-        if(is_num(stack -> call[call_idx]))
+        if(is_num(stack -> call[call_idx]) || (get_tag(stack -> call[call_idx]) == STRING))
             push(stack -> stack, &(*sp), stack -> call[call_idx]);
-        else if(get_tag(stack -> call[call_idx]) == OPERATION)
-            run_math(stack, &(*sp), stack -> call[call_idx]);
+        else if(get_tag(stack -> call[call_idx]) == MATH_OPERATION)
+            run_math(stack, &(*sp), stack -> call[call_idx], output);
         else if(get_tag(stack -> call[call_idx]) == PREBUILT)
             run_prebuilt(stack, &(*sp), stack -> call[call_idx]);
+        else if(get_tag(stack -> call[call_idx]) == STRING)
+            push(stack -> stack, &(*sp), stack -> call[call_idx]);
+        else if(get_tag(stack -> call[call_idx]) == STRING_OPERATION)
+            run_string_op(stack -> stack, &(*sp), strings, &(*string_pos));
         }
     return;
 }

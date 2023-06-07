@@ -13,15 +13,27 @@ static const char* math_ops[] = {
     [DIVIDE] = "/"
 };
 
+static const char* string_ops[] = {
+    [STRCAT] = "strcat"
+};
+
 static double
 process_func(const char* func) { // Proccess all but udf
-    for(int idx = 0; idx < 3; idx++) {
+    int prebuilt_length = sizeof(prebuilt_ops) / sizeof(prebuilt_ops[0]);
+    int math_length = sizeof(math_ops) / sizeof(math_ops[0]);
+    int string_op_length = sizeof(string_ops) / sizeof(string_ops[0]);
+
+    for(int idx = 0; idx < prebuilt_length; idx++) {
        if(strcmp(func, prebuilt_ops[idx]) == 0) 
            return makeBox(idx, PREBUILT);
     }
-    for(int idx = 0; idx < 4; idx++) {
+    for(int idx = 0; idx < math_length; idx++) {
        if(strcmp(func, math_ops[idx]) == 0) 
-           return makeBox(idx, OPERATION);
+           return makeBox(idx, MATH_OPERATION);
+    }
+    for(int idx = 0; idx < string_op_length; idx++) {
+       if(strcmp(func, string_ops[idx]) == 0) 
+           return makeBox(idx, STRING_OPERATION);
     }
     return -1;
 }
@@ -67,27 +79,53 @@ makeUDF(const char** input) {
     return new_udf;
 }
 
+
 // finish udfs
 // do some error testing
 // "start quotations ..?"
 
-double* 
-parseInput(const char* input, int* call_size, UDF* udfs[], int* udf_count) {
-    double* call = malloc(sizeof(*call) * 1000);
+void
+read_string(char* strings, int* strings_pos, const char** sp) {
+    *sp += 1;
+    int length = 0;
+    while(*(*sp + length) != '\"')
+        length++;
+
+
+    char* word = malloc(sizeof(*word) * (length + 1));
+    strncpy(word, *sp, length);
+    word[length] = '\0';
+
+    strcpy(strings + *strings_pos, word);
     
+    
+    *strings_pos += length + 1;
+    *sp += length + 1;
+    free(word);
+    return;
+}
+
+double* 
+parseInput(const char* input, int* call_size, UDF* udfs[], int* udf_count, double* heap, int* heap_size, char strings[], int* string_pos) {
+    double* call = malloc(sizeof(*call) * 1000); 
+
     int call_pointer = 0; // Total Number Of Elements In The Call Array
     const char* sp = input; // String Pointer
 
     double val; // Place Values Used For Parsing 
     int char_elapsed;
     char arg[100];
+
     while(*sp != '\0') {
         char_elapsed = 0;
 
         if(*sp == ' ')
             sp++;
         else if(*sp == ':') {
-            udfs[(*udf_count)++] = makeUDF(&sp); 
+            udfs[(*udf_count)++] = makeUDF(&sp);  
+        } else if(*sp == '"') {
+            call[call_pointer++] = makeBox(*string_pos, STRING);
+            read_string(strings, &(*string_pos), &sp);
         } else if(*sp >= '0' && *sp <= '9') {
             sscanf(sp, "%lg%n", &val, &char_elapsed);
             sp += char_elapsed;

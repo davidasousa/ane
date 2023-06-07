@@ -3,11 +3,11 @@
 
 void 
 test_nanbox(void) {
-    double nanbox = makeBox(MINUS, OPERATION);
+    double nanbox = makeBox(MINUS, MATH_OPERATION);
     uint32_t op = get_op(nanbox);
     uint32_t tag = get_tag(nanbox);
     TEST_CHECK(op == MINUS);
-    TEST_CHECK(tag == OPERATION);
+    TEST_CHECK(tag == MATH_OPERATION);
     nanbox = makeBox(ZAP, PREBUILT);
     op = get_op(nanbox);
     tag = get_tag(nanbox);
@@ -15,79 +15,55 @@ test_nanbox(void) {
     TEST_CHECK(tag == PREBUILT);
 }
 
-void 
-test_calcStack(void) {
-    int udf_size = 0;
-    UDF* udfs[10];
-    callStack temp;
-    int size;
-    int sp = -1;
-    temp.call = parseInput("1 2 + 4 -", &size, udfs, &udf_size);
-    calcStack(&temp, size, &sp);
-    TEST_CHECK(sp == 0);
-    TEST_CHECK(temp.stack[0] == -1);
-    free(temp.call);
-}
-
-void 
-test_calcStack_prebuilt(void) {
-    int udf_size = 0;
-    UDF* udfs[10];
-    callStack temp;
-    int size;
-    int sp = -1;
-    temp.call = parseInput("3.1 dup *", &size, udfs, &udf_size);
-    calcStack(&temp, size, &sp);
-    TEST_CHECK(sp == 0);
-    TEST_CHECK(temp.stack[0] == (3.1 * 3.1));
-    free(temp.call);
-
-    sp = -1;
-    temp.call = parseInput("3.1 dup * 1 swap", &size, udfs, &udf_size);
-    calcStack(&temp, size, &sp);
-    TEST_CHECK(sp == 1);
-    TEST_CHECK(temp.stack[0] == 1);
-    TEST_CHECK(temp.stack[1] == (3.1 * 3.1));
-    free(temp.call);
-
-    sp = -1;
-    temp.call = parseInput("3.1 dup * 1 swap zap", &size, udfs, &udf_size);
-    calcStack(&temp, size, &sp);
-    TEST_CHECK(sp == 0);
-    TEST_CHECK(temp.stack[0] == 1);
-    free(temp.call);
+void
+test_errors(void) { 
+    int valid_pass;
+    FILE* fp = fopen("input_files/error.txt", "r");
+    FILE* output = fopen("output_files/error.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);
+    
+    fp = fopen("output_files/error.txt", "r");
+    char str[1000];
+    fgets(str, sizeof(str), fp);
+    str[strcspn(str, "\n")] = '\0';
+    TEST_CHECK(strcmp(str, "Error: Not Enough Values In Stack To Pop") == 0);
+    fclose(fp);
 }
 
 void
-test_udf_building(void) {
-    int size;
-    callStack temp;
-    int udf_size = 0;
-    UDF* udfs[10];
-    temp.call = parseInput(": sq dup * ;", &size, udfs, &udf_size);
-    TEST_CHECK(udfs[0] -> args == 2);
-    TEST_CHECK(strcmp(udfs[0] -> name, "sq") == 0);
-    free(udfs[0] -> function);
-    free(udfs[0]);
-    free(temp.call);
-}
-
-void
-test_wrapper(void) { // For Display Of How This Will Work In A Real User Based Environment 
+test_ane(void) { // For Display Of How This Will Work In A Real User Based Environment 
     int valid_pass;
     FILE* fp = fopen("input_files/input.txt", "r");
-    ane(fp, &valid_pass);
+    FILE* output = fopen("output_files/output.txt", "w");
+    ane(fp, &valid_pass, output);
     fclose(fp);
-    fp = fopen("input_files/input2.txt", "r");
-    ane(fp, &valid_pass);
+    fclose(output);
+    
+    fp = fopen("output_files/output.txt", "r");
+    char str[1000];
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "8 11 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "0.727273 \n") == 0);
     fclose(fp);
+}
+
+void
+test_ane_strings(void) { // For Display Of How This Will Work In A Real User Based Environment 
+    int valid_pass;
+    FILE* fp = fopen("input_files/input3.txt", "r");
+    FILE* output = fopen("output_files/output3.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);
 }
 
 TEST_LIST = {
     {"Nanbox Operations", test_nanbox},
-    {"Stack Arithmatic Calculations", test_calcStack},
-    {"Stack Prebuilt", test_calcStack_prebuilt},
-   // {"UDF BULDING", test_udf_building},
-    {"Test ANE wrapper", test_wrapper},
+    {"Errors", test_errors},
+    {"ANE", test_ane},
+    {"ANE Strings", test_ane_strings},
     {NULL, NULL}
 };

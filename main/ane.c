@@ -29,7 +29,7 @@ save_udfs(UDF* udfs[], int udf_count, FILE* fp) {
     }
 }
 
-double* 
+void
 ane(FILE* stream, int* valid_pass, FILE* output) {
     char str[1000];
     callStack stack;
@@ -50,16 +50,19 @@ ane(FILE* stream, int* valid_pass, FILE* output) {
     while(fgets(str, sizeof(str), stream) != NULL) {
         str[strcspn(str, "\n")] = '\0';
 
-        if(strcmp(str, "q") == 0)
+        if(strcmp(str, "q") == 0) {
+            fprintf(output, "ANE Closed Successfully");
             break;
+        }
 
         int call_size = 0;
         stack.call = parseInput(str, &call_size, udfs, &udfs_count, heap, &heap_size, strings, &string_pos);
-        calcStack(&stack, call_size, &sp, output, strings, &string_pos);
-
-        for(int idx = 0; idx <= sp; idx++)
-            printf("%d:%lg ",idx, stack.stack[idx]);
-        printf("\n");
+        int pass = calcStack(&stack, call_size, &sp, output, strings, &string_pos);
+        if(pass != 0) {
+            fprintf(output,"Error: Not Enough Values In Stack To Pop");
+            free(stack.call);
+            break;
+        }
 
         for(int idx = 0; idx <= sp; idx++) {
             if(is_num(stack.stack[idx]))
@@ -81,12 +84,8 @@ ane(FILE* stream, int* valid_pass, FILE* output) {
         free(udfs[idx] -> name);
         free(udfs[idx]);
     }
-    free(udfs);
+    
+    free(udfs); free(heap); free(strings);
 
-    free(heap);
-    free(strings);
-
-    printf("ANE Closed Successfully");
-
-    return NULL;
+    return;
 }

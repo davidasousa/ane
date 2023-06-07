@@ -31,8 +31,6 @@ double
 makeBox(uint32_t op, uint32_t tag);
 
 enum tag_type { MATH_OPERATION = 0x7ff8, PREBUILT, USERDEF, STRING, STRING_OPERATION }; // nantag 
-enum error {ERROR = -1};
-
 enum prebuilt_type { DUP, SWAP, ZAP};
 enum math_op_type { PLUS, MINUS, MULTIPLY, DIVIDE };
 enum string_op_type { STRCAT };
@@ -51,10 +49,8 @@ void read_string(char* strings, int* strings_pos, const char** sp);
 double* 
 parseInput(const char* input, int* call_size, UDF** udfs, int* udf_count, double* heap, int* heap_size, char strings[], int* string_pos);
 
-void // Returns the size of the stack at finish
+int // Returns error code
 calcStack(callStack* stack, int call_size, int* sp, FILE* output, char* strings, int* string_pos);
 
-double* 
+void
 ane(FILE* input, int* valid_pass, FILE* output);
-// The Ane function returns the stack at completion
-

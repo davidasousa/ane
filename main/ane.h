@@ -24,6 +24,7 @@ typedef struct
 UDF {
     double* function;
     char* name;
+    int name_strlen;
     int args;
 } UDF;
 
@@ -34,6 +35,11 @@ enum tag_type { MATH_OPERATION = 0x7ff8, PREBUILT, USERDEF, STRING, STRING_OPERA
 enum prebuilt_type { DUP, SWAP, ZAP};
 enum math_op_type { PLUS, MINUS, MULTIPLY, DIVIDE };
 enum string_op_type { STRCAT };
+enum error { ERROR = -1 };
+
+// Nanbox Operations
+int 
+is_num(double value);
 
 double
 makeBox(uint32_t op, uint32_t tag);
@@ -43,14 +49,16 @@ get_op(double nanbox);
 
 uint32_t
 get_tag(double nanbox);
+//
 
+// String Reading 
 void read_string(char* strings, int* strings_pos, const char** sp);
 
-double* 
-parseInput(const char* input, int* call_size, UDF** udfs, int* udf_count, double* heap, int* heap_size, char strings[], int* string_pos);
+void
+parseInput(double* call, const char* input, int* call_size, UDF** udfs, int* udf_count, char strings[], int* string_pos);
 
 int // Returns error code
-calcStack(callStack* stack, int call_size, int* sp, FILE* output, char* strings, int* string_pos);
+execStack(double* stack, double* call, int call_size, int* sp, FILE* output, char* strings, int* string_pos);
 
 void
 ane(FILE* input, int* valid_pass, FILE* output);

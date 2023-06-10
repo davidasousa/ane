@@ -68,7 +68,7 @@ run_prebuilt(double* stack, int* sp, double arg) {
 }
 
 static void
-run_string_op(double* stack, int* sp, char* strings, int* string_pos) { // this code is shit
+run_strcat(double* stack, int* sp, char* strings, int* string_pos) {
 
     double cdrNan = pop(stack, &(*sp));
     double conNan = pop(stack, &(*sp));
@@ -84,6 +84,23 @@ run_string_op(double* stack, int* sp, char* strings, int* string_pos) { // this 
     *string_pos += strlen(con) + 1;
     return;
 }
+
+static void
+run_strlen(double* stack, int* sp, char* strings, int* string_pos) {
+    duplicate(stack, &(*sp));
+    stack[*sp] = strlen(strings + get_op(stack[*sp]));
+
+    return;
+}
+
+static void
+run_string_op(double* stack, int* sp, char* strings, int* string_pos, double arg) { // this code is shit
+    void (*string_op[2]) (double* stack, int* sp, char* strings, int* string_pos);
+    string_op[0] = run_strcat; string_op[1] = run_strlen;
+    string_op[get_op(arg)] (stack, &(*sp), strings, &(*string_pos));
+    return;
+}
+
 
 int
 execStack(double* stack, double* call, int call_size, int* sp, FILE* output, char* strings, int* string_pos) {
@@ -103,7 +120,7 @@ execStack(double* stack, double* call, int call_size, int* sp, FILE* output, cha
             push(stack, &(*sp), call[call_idx]);
         }
         else if(get_tag(call[call_idx]) == STRING_OPERATION) {
-            run_string_op(stack, &(*sp), strings, &(*string_pos));
+            run_string_op(stack, &(*sp), strings, &(*string_pos), call[call_idx]);
         }
     }
 

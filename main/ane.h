@@ -31,11 +31,10 @@ UDF {
 double 
 makeBox(uint32_t op, uint32_t tag);
 
-enum tag_type { MATH_OPERATION = 0x7ff8, PREBUILT, USERDEF, STRING, STRING_OPERATION }; // nantag 
-enum prebuilt_type { DUP, SWAP, ZAP};
-enum math_op_type { PLUS, MINUS, MULTIPLY, DIVIDE };
-enum string_op_type { STRCAT };
-enum error { ERROR = -1 };
+enum tag_type { MATH_OPERATION = 0x7ff8, PREBUILT, USERDEF, STRING, STRING_OPERATION, READWRITE}; // nantag 
+enum prebuilt_op { DUP, SWAP, ZAP};
+enum math_op { PLUS, MINUS, MULTIPLY, DIVIDE };
+enum string_op { STRCAT, STRLEN };
 
 // Nanbox Operations
 int 

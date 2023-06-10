@@ -16,7 +16,8 @@ static const char* math_ops[] = {
 };
 
 static const char* string_ops[] = {
-    [STRCAT] = "strcat"
+    [STRCAT] = "strcat",
+    [STRLEN] = "strlen"
 };
 
 static double
@@ -43,56 +44,67 @@ process_func(const char* input) { // Take A Given Char* Input & Associate With T
         if(strcmp(input, string_ops[idx]) == 0) 
             return makeBox(idx, STRING_OPERATION);
     }
-    return ERROR;
+    return USERDEF;
 }
 
 static UDF*
-makeUDF(const char** input) {
-
-    int char_elapsed = 0;
-    int arg_count = 0; 
-
-    char name[100];
-    
-    sscanf(*input, ": %s %n", name, &char_elapsed);
-    name[char_elapsed] = '\0';
-    *input += char_elapsed;
-
-    for(const char* ch = *input; *ch != ';'; ch++)
-        if(*ch == ' ')
-            arg_count++;
-
-    char* malloced_name = malloc(sizeof(*malloced_name) * (strlen(name) + 1));
-    memcpy(malloced_name, name, sizeof(char) * (strlen(name) + 1));
-
-    UDF* new_udf = malloc(sizeof(*new_udf));
-    *new_udf = (UDF) {.name_strlen = strlen(name) + 1, .args = arg_count, .name = malloced_name};
-
-    double* contents = malloc(sizeof(*contents) * arg_count);
-    for(int cont_idx = 0; cont_idx < arg_count; cont_idx++) {
-        char* args = malloc(sizeof(*args) * 100);
-        sscanf(*input, "%s %n", args, &char_elapsed);
-        *input += char_elapsed;
-
-        if(*args >= '0' && *args <= '9'){
-            double num = 0;
-            sscanf(args, "%lg", &num);
-            contents[cont_idx] = num;
-        } else
-            contents[cont_idx] = process_func(args);
-        free(args);
-    }
+makeUDF(const char** input, UDF* udfs[], int* udf_count) {
     *input += 2;
 
-    new_udf -> function = contents;
+    // Finding The Name & Name Length
+    int name_len = 0;
+    char* name = malloc(sizeof(*name) * 100);
+
+    while(**input != ' ') {
+        name[name_len++] = **input;
+        *input += 1;
+    }
+    name[name_len++] = '\0';
+
+    // Finding The Function & Argument Count
+    double* function = malloc(sizeof(*function) * 100); // malloced for resize later
+    int func_size = 0;
+
+    while(**input != ';') {
+        if(**input == ' ') {
+            *input += 1;
+            continue;
+        }
+
+        int char_elapsed;
+        char arg[100]; 
+        sscanf(*input,"%s%n", arg, &char_elapsed);
+
+        if(arg[0] >= '0' && arg[0] <= '9'){
+            double val;
+            sscanf(*input, "%lg", &val);
+            function[func_size++] = val;
+        } else if (process_func(arg) != USERDEF) {
+            function[func_size++] = process_func(arg);
+        } else {
+
+            UDF* curr_udf;
+            for(int udf_idx = 0; udf_idx < *udf_count; udf_idx++) {
+                if(strcmp(udfs[udf_idx] -> name, arg) == 0)
+                    curr_udf = udfs[udf_idx];
+            }
+
+            for(int udf_func_idx = 0; udf_func_idx < curr_udf -> args; udf_func_idx++) {
+                function[func_size++] = (curr_udf -> function)[udf_func_idx];
+            }
+
+        }
+        *input += char_elapsed;
+    }
+
+    function = (double*) realloc(function, sizeof(*function) * func_size);
+    name = (char*) realloc(name, sizeof(*name) * name_len);
+
+    UDF* new_udf = malloc(sizeof(*new_udf));
+    *new_udf = (UDF){.name = name, .name_strlen = name_len, .function = function, .args = func_size};
 
     return new_udf;
 }
-
-
-// finish udfs
-// do some error testing
-// "start quotations ..?"
 
 void
 read_string(char* strings, int* strings_pos, const char** sp) {
@@ -100,7 +112,6 @@ read_string(char* strings, int* strings_pos, const char** sp) {
     int length = 0;
     while(*(*sp + length) != '\"')
         length++;
-
 
     char* word = malloc(sizeof(*word) * (length + 1));
     strncpy(word, *sp, length);
@@ -116,7 +127,7 @@ read_string(char* strings, int* strings_pos, const char** sp) {
 
 static void
 save_udfs(UDF* udfs[], int udf_count, FILE* fp) {
-    
+
     fwrite(&udf_count, sizeof(udf_count), 1, fp);
     for(int udf_idx = 0; udf_idx < udf_count; udf_idx++) {
         char* name = udfs[udf_idx] -> name;
@@ -129,8 +140,6 @@ save_udfs(UDF* udfs[], int udf_count, FILE* fp) {
         fwrite(&args, sizeof(args), 1, fp);
         fwrite(function, sizeof(function), args, fp);
 
-        printf("name %s args %d strlen %d", name, args, strlen);
-        printf("sizeof name %lu", sizeof(name));
     }
     return;
 }
@@ -179,8 +188,9 @@ parseInput(double* call, const char* input, int* call_size, UDF* udfs[], int* ud
 
         } else if(*sp == ':') {
 
-            udfs[(*udf_count)++] = makeUDF(&sp);  // Processing The Udf Unitl The ;
-                                                  
+            udfs[(*udf_count)] = makeUDF(&sp, udfs, udf_count);  // Processing The Udf Unitl The ;
+            *udf_count += 1;
+
         } else if(*sp == '"') {
 
             call[call_pointer++] = makeBox(*string_pos, STRING); // Add String nanbox to stack pointing to the first letter of the new string
@@ -196,7 +206,7 @@ parseInput(double* call, const char* input, int* call_size, UDF* udfs[], int* ud
 
             sscanf(sp, "%s%n", arg, &char_elapsed);
             sp += char_elapsed;
-            
+
             if(strcmp(arg, "writefuncs") == 0) {
                 FILE* udf_fp = fopen("udfs.txt", "w");
                 save_udfs(udfs, *udf_count, udf_fp);
@@ -209,24 +219,23 @@ parseInput(double* call, const char* input, int* call_size, UDF* udfs[], int* ud
                 fclose(udf_fp);
             }
 
-                double parse_result = process_func(arg);
-                if(parse_result != ERROR) // Not A UDF
-                    call[call_pointer++] = parse_result;
+            double parse_result = process_func(arg);
+            if(parse_result != USERDEF) // Not A UDF
+                call[call_pointer++] = parse_result;
 
-                if(parse_result == ERROR) { // udf === -1
-                                            //
-                    for(int udf_idx = 0; udf_idx < *udf_count; udf_idx++) {
+            if(parse_result == USERDEF) { // udf === -1
+                                        //
+                for(int udf_idx = 0; udf_idx < *udf_count; udf_idx++) {
 
-                        if(strcmp(arg, udfs[udf_idx] -> name) == 0) {
-                            double* function = udfs[udf_idx] -> function;
-                            for(int func_idx = 0; func_idx < udfs[udf_idx] -> args; func_idx++) {
-                                call[call_pointer++] = function[func_idx];
-                            }
-
+                    if(strcmp(arg, udfs[udf_idx] -> name) == 0) {
+                        double* function = udfs[udf_idx] -> function;
+                        for(int func_idx = 0; func_idx < udfs[udf_idx] -> args; func_idx++) {
+                            call[call_pointer++] = function[func_idx];
                         }
-                        
-                    }                                        
-                }
+                    }
+
+                }                                        
+            }
         }
     }
     *call_size = call_pointer;

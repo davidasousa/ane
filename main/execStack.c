@@ -42,6 +42,8 @@ static void
 duplicate(double* stack, int* sp) {
     double copy = stack[*sp];
     push(stack, &(*sp), copy); 
+
+    return;
 }
 
 static void
@@ -49,14 +51,12 @@ swap(double* stack, int* sp) {
     double copy = stack[*sp];
     stack[*sp] = stack[(*sp - 1)];
     stack[(*sp - 1)] = copy;
+
     return;
 }
 
 static void
-zap(double* stack, int* sp) {
-    (*sp)--;
-    return;
-}
+zap(double* stack, int* sp) { (*sp)--; }
 
 // Prebuilt Functions
 static void
@@ -64,24 +64,27 @@ run_prebuilt(double* stack, int* sp, double arg) {
     void (*pre_op[3]) (double* stack, int* sp);
     pre_op[0] = duplicate; pre_op[1] = swap; pre_op[2] = zap;
     pre_op[get_op(arg)] (&(*stack), &(*sp));
+
     return;
 }
 
 static void
 run_strcat(double* stack, int* sp, char* strings, int* string_pos) {
 
-    double cdrNan = pop(stack, &(*sp));
-    double conNan = pop(stack, &(*sp));
-    int a = get_op(cdrNan);
-    int b = get_op(conNan);
     char con[100];
     char cdr[100];
-    strcpy(con, strings + b);
-    strcpy(cdr, strings + a);
+
+    int pos_cdr = get_op(pop(stack, &(*sp)));
+    int pos_con = get_op(pop(stack, &(*sp)));
+    strcpy(con, strings + pos_con);
+    strcpy(cdr, strings + pos_cdr);
+
     strcat(con, cdr);
-    strcpy(strings + *string_pos, con);
+    strcpy(strings + *string_pos, con); // Placing The Copied String Back Onto The Head
     push(stack, &(*sp), makeBox(*string_pos, STRING));
-    *string_pos += strlen(con) + 1;
+
+    *string_pos += strlen(con) + 1; // Updating The String Pos After The New String Was Added
+
     return;
 }
 
@@ -98,6 +101,7 @@ run_string_op(double* stack, int* sp, char* strings, int* string_pos, double arg
     void (*string_op[2]) (double* stack, int* sp, char* strings, int* string_pos);
     string_op[0] = run_strcat; string_op[1] = run_strlen;
     string_op[get_op(arg)] (stack, &(*sp), strings, &(*string_pos));
+
     return;
 }
 

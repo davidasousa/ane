@@ -17,6 +17,51 @@ write_string(FILE* fp, char strings[], int string_pos) {
     return;
 }
 
+static void
+save_udfs(UDF* udfs[], int udf_count, FILE* fp) {
+
+    fwrite(&udf_count, sizeof(udf_count), 1, fp);
+    for(int udf_idx = 0; udf_idx < udf_count; udf_idx++) {
+        char* name = udfs[udf_idx] -> name;
+        int args = udfs[udf_idx] -> args;
+        int strlen = udfs[udf_idx] -> name_strlen;
+        double* function = udfs[udf_idx] -> function;
+
+        fwrite(&strlen, sizeof(strlen), 1, fp);
+        fwrite(name, sizeof(*name), strlen, fp);
+        fwrite(&args, sizeof(args), 1, fp);
+        fwrite(function, sizeof(function), args, fp);
+
+    }
+    return;
+}
+
+static void
+load_udfs(UDF* udfs[], int* udf_count, FILE* fp) {
+    fread(udf_count, sizeof(*udf_count), 1, fp);
+
+    for(int idx = 0; idx < *udf_count; idx++) {
+        int strlen;
+        int args;
+
+        fread(&strlen, sizeof(int), 1, fp);
+
+        char* name = malloc(sizeof(*name) * strlen);
+
+        fread(name, sizeof(*name), strlen, fp);
+        fread(&args, sizeof(int), 1, fp);
+
+        double* function = malloc(sizeof(*function) * args);
+
+        fread(function, sizeof(*function), args, fp);
+
+        UDF* new_udf = malloc(sizeof(*new_udf));
+        *new_udf = (UDF){.args = args, .name_strlen = strlen, .function = function, .name = name};
+        udfs[idx] = new_udf;
+    }
+    return;
+}
+
 void
 ane(FILE* stream, int* valid_pass, FILE* output) {
 
@@ -41,6 +86,20 @@ ane(FILE* stream, int* valid_pass, FILE* output) {
         if(strcmp(str, "q") == 0) {
             fprintf(output, "ANE Closed Successfully");
             break;
+        }
+
+        if(strcmp(str, "writefuncs") == 0) {
+            FILE* udf_fp = fopen("udfs.txt", "w");
+            save_udfs(udfs, udfs_count, udf_fp);
+            fclose(udf_fp);
+            continue;
+        }
+
+        if(strcmp(str, "loadfuncs") == 0) {
+            FILE* udf_fp = fopen("udfs.txt", "r");
+            load_udfs(udfs, &udfs_count, udf_fp);
+            fclose(udf_fp);
+            continue;
         }
 
         int call_size;

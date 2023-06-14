@@ -11,6 +11,50 @@
 int
 is_num(double val) { return val == val;}
 
+static void save_funcs(int udf_count, udf* functions[], double* heap, FILE* fp) {
+    fwrite(&udf_count, sizeof(int), 1, fp);
+    for(int idx = 0; idx < udf_count; idx++) {
+        fwrite(&(functions[idx] -> name_strlen), sizeof(int), 1, fp);
+        fwrite(functions[idx] -> name, sizeof(char), functions[idx] -> name_strlen, fp);
+        fwrite(&(functions[idx] -> args), sizeof(int), 1, fp);
+        for(int arg_idx = 0; arg_idx < functions[idx] -> args; arg_idx++)
+            fwrite(&heap[functions[idx] -> hp + arg_idx], sizeof(double), 1, fp);
+
+    }
+}
+
+static void load_funcs(int* udf_count, udf* functions[], double* heap, int* hp, FILE* fp) {
+    fread(udf_count, sizeof(int), 1, fp);
+    for(int idx = 0; idx < *udf_count; idx++) {
+        int name_strlen;
+        fread(&name_strlen, sizeof(int), 1, fp);
+
+        char* name = malloc(sizeof(*name) * name_strlen);
+        fread(name, sizeof(*name), name_strlen, fp);
+
+        int args;
+        fread(&args, sizeof(int), 1, fp);
+
+        int heap_pos = *hp;
+        for(int arg_idx = 0; arg_idx < args; arg_idx++) {
+            double value;
+            fread(&value, sizeof(double), 1, fp);
+            heap[*hp] = value;
+            *hp += 1;
+        }
+
+        udf* new_func = malloc(sizeof(*new_func));
+        new_func -> name_strlen = name_strlen;
+        new_func -> hp = heap_pos;
+        new_func -> name = name;
+        new_func -> args = args;
+        
+        functions[idx] = new_func;
+
+    }
+
+}
+
 void
 ane(FILE* stream, int* valid_pass, FILE* output) {
 
@@ -38,12 +82,14 @@ ane(FILE* stream, int* valid_pass, FILE* output) {
 
         if(strcmp(str, "writefuncs") == 0) {
             FILE* udf_fp = fopen("udfs.txt", "w");
+            save_funcs(udf_count, functions, heap, udf_fp);
             fclose(udf_fp);
             continue;
         }
 
         if(strcmp(str, "loadfuncs") == 0) {
             FILE* udf_fp = fopen("udfs.txt", "r");
+            load_funcs(&udf_count, functions, heap, &hp, udf_fp);
             fclose(udf_fp);
             continue;
         }
@@ -74,11 +120,6 @@ ane(FILE* stream, int* valid_pass, FILE* output) {
     free(call_array);
     free(heap);
 
-    for(int idx = 0; idx < udf_count; idx++) {
-        free(functions[idx] -> name);
-        free(functions[idx]);
-    }
-    
     free(functions);
 
     return;

@@ -81,6 +81,33 @@ test_create_udf(void) { // For Display Of How This Will Work In A Real User Base
 }
 
 void
+test_udf_in_udf(void) { // For Display Of How This Will Work In A Real User Based Environment 
+    int valid_pass;
+    FILE* fp = fopen("input_files/input6.txt", "r");
+    FILE* output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);
+    
+    fp = fopen("output.txt", "r");
+    char str[1000];
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "2.25 \n") == 0);
+    fclose(fp);
+
+    fp = fopen("input_files/input7.txt", "r");
+    output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);
+
+    fp = fopen("output.txt", "r");
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "20 \n") == 0);
+    fclose(fp);
+}
+
+void
 test_save_load_udf(void) {
     int valid_pass;
     FILE* fp = fopen("input_files/input5.txt", "r");
@@ -94,34 +121,24 @@ test_save_load_udf(void) {
     ane(fp, &valid_pass, output);
     fclose(fp);
     fclose(output);    
-    
-}
 
-void
-test_udf_in_udf(void) { // For Display Of How This Will Work In A Real User Based Environment 
-    int valid_pass;
-    FILE* fp = fopen("input_files/input6.txt", "r");
-    FILE* output = fopen("output.txt", "w");
-    ane(fp, &valid_pass, output);
-    fclose(fp);
-    fclose(output);
-    
     fp = fopen("output.txt", "r");
     char str[1000];
     fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "50 \n") == 0);
+    TEST_CHECK(strcmp(str, "24 24 \n") == 0);
+    printf("%s", str);
     fclose(fp);
+
+    
 }
-
-
 
 TEST_LIST = {
     {"Nanbox Operations", test_nanbox},
     {"ANE Basic Arithmatic", test_ane_arithmatic},
     {"ANE Basic Strings", test_ane_strings},
     {"ANE Basic UDF Creation", test_create_udf},
-    {"ANE Basic UDF Reading / Writing", test_save_load_udf},
     {"ANE Udf In Udf", test_udf_in_udf},
+    {"ANE Udf Save/Load", test_save_load_udf},
     {NULL, NULL}
 };
 

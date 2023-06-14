@@ -47,87 +47,98 @@ process_func(const char* input) { // Take A Given Char* Input & Associate With T
     return USERDEF;
 }
 
-static UDF*
-makeUDF(const char** input, UDF* udfs[], int* udf_count) {
+static udf*
+makeudf(const char** input, double* heap, int* hp, udf* functions[], int udf_count) {
+    char* name = malloc(sizeof(*name) * 100);
+    int pos = *hp;
+    int idx = 0;
+
     *input += 2;
 
-    // Finding The Name & Name Length
-    int name_len = 0;
-    char* name = malloc(sizeof(*name) * 100);
-
     while(**input != ' ') {
-        name[name_len++] = **input;
+        name[idx++] = **input;
         *input += 1;
     }
-    name[name_len++] = '\0';
-
-    // Finding The Function & Argument Count
-    double* function = malloc(sizeof(*function) * 100); // malloced for resize later
-    int func_size = 0;
+    name[idx] = '\0';
+    name = realloc(name, sizeof(name) * idx);
+    int name_len = idx;
+   
+    idx = 0;
 
     while(**input != ';') {
+
         if(**input == ' ') {
             *input += 1;
             continue;
         }
 
+        char arg[100];
         int char_elapsed;
-        char arg[100]; 
-        sscanf(*input,"%s%n", arg, &char_elapsed);
+        sscanf(*input, "%s%n", arg, &char_elapsed);
 
-        if(arg[0] >= '0' && arg[0] <= '9'){
+        if(**input >= '0' && **input <= '9') {
             double val;
             sscanf(*input, "%lg", &val);
-            function[func_size++] = val;
-        } else if (process_func(arg) != USERDEF) {
-            function[func_size++] = process_func(arg);
+            heap[*hp] = val;
+            *hp += 1;
+            idx++;
         } else {
+            double nanbox = process_func(arg);
 
-            UDF* curr_udf;
-            for(int udf_idx = 0; udf_idx < *udf_count; udf_idx++) {
-                if(strcmp(udfs[udf_idx] -> name, arg) == 0)
-                    curr_udf = udfs[udf_idx];
-            }
+            if(nanbox == USERDEF) {
+                for(int udf_idx = 0; udf_idx < udf_count; udf_idx++)
+                    if(strcmp(arg, functions[udf_idx] -> name) == 0)
+                        for(int func_idx = 0; func_idx < functions[udf_idx] -> args; func_idx++) {
+                            heap[*hp] = heap[functions[udf_idx] -> hp + func_idx];
+                            idx++;
+                            *hp += 1;
+                        }
 
-            for(int udf_func_idx = 0; udf_func_idx < curr_udf -> args; udf_func_idx++) {
-                function[func_size++] = (curr_udf -> function)[udf_func_idx];
+            } else {
+                heap[*hp] = nanbox;
+                *hp += 1;
+                idx++;
             }
 
         }
         *input += char_elapsed;
     }
 
-    function = (double*) realloc(function, sizeof(*function) * func_size);
-    name = (char*) realloc(name, sizeof(*name) * name_len);
-
-    UDF* new_udf = malloc(sizeof(*new_udf));
-    *new_udf = (UDF){.name = name, .name_strlen = name_len, .function = function, .args = func_size};
-
+    udf* new_udf = malloc(sizeof(*new_udf));
+    *new_udf = (udf) {.args = idx, .name = name, .name_strlen = name_len, .hp = pos};
+ 
     return new_udf;
 }
 
-void
-read_string(char* strings, int* strings_pos, const char** sp) {
-    *sp += 1;
-    int length = 0;
-    while(*(*sp + length) != '\"')
-        length++;
+static void
+add_string(double* heap, int* hp, const char** arg) {
 
-    char* word = malloc(sizeof(*word) * (length + 1));
-    strncpy(word, *sp, length);
-    word[length] = '\0';
+    *arg += 1; // Continuing The Flow Along The String
 
-    strcpy(strings + *strings_pos, word);
+    char* curr;
+    int idx = 0;
 
-    *strings_pos += length + 1;
-    *sp += length + 1;
-    free(word);
+    for(const char* ch = *arg; *ch != '\"'; ch++) {
+
+        curr = (char*) &heap[*hp];
+        curr[idx++] = *ch;
+
+        if(idx == 8) {
+            (*hp)++;
+            idx = 0;
+        }
+        *arg += 1;
+    }
+    curr = (char*) &heap[*hp];
+    curr[idx] = '\0';
+    (*hp)++;
+
+    *arg += 1;
     return;
 }
 
-
 void
-parseInput(double* call, const char* input, int* call_size, UDF* udfs[], int* udf_count, char strings[], int* string_pos) {
+parseInput(double* call, const char* input, int* call_size, double* heap, int* hp, udf* functions[], int* udf_count) {
     int call_pointer = 0; // Total Number Of Elements In The Call Array
     const char* sp = input; // String Pointer
 
@@ -144,13 +155,13 @@ parseInput(double* call, const char* input, int* call_size, UDF* udfs[], int* ud
 
         } else if(*sp == ':') {
 
-            udfs[(*udf_count)] = makeUDF(&sp, udfs, udf_count);  // Processing The Udf Unitl The ;
+            functions[*udf_count] = makeudf(&sp, heap, hp, functions, *udf_count);
             *udf_count += 1;
 
         } else if(*sp == '"') {
 
-            call[call_pointer++] = makeBox(*string_pos, STRING); // Add String nanbox to stack pointing to the first letter of the new string
-            read_string(strings, &(*string_pos), &sp);
+            call[call_pointer++] = makeBox(*hp, STRING);
+            add_string(heap, hp, &sp);
 
         } else if(*sp >= '0' && *sp <= '9') {
 
@@ -164,22 +175,19 @@ parseInput(double* call, const char* input, int* call_size, UDF* udfs[], int* ud
             sp += char_elapsed;
 
             double parse_result = process_func(arg);
-            if(parse_result != USERDEF) // Not A UDF
+            
+            if(parse_result != USERDEF) // Not A UDF                             
                 call[call_pointer++] = parse_result;
-
-            if(parse_result == USERDEF) { // udf === -1
-                                        //
-                for(int udf_idx = 0; udf_idx < *udf_count; udf_idx++) {
-
-                    if(strcmp(arg, udfs[udf_idx] -> name) == 0) {
-                        double* function = udfs[udf_idx] -> function;
-                        for(int func_idx = 0; func_idx < udfs[udf_idx] -> args; func_idx++) {
-                            call[call_pointer++] = function[func_idx];
+            else {
+                for(int idx = 0; idx < *udf_count; idx++) {
+                    if(strcmp(arg, functions[idx] -> name) == 0) {
+                        for(int num = 0; num < functions[idx] -> args; num++) {
+                            call[call_pointer++] = heap[functions[idx] -> hp + num];
                         }
                     }
-
-                }                                        
+                }
             }
+            
         }
     }
     *call_size = call_pointer;

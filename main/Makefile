@@ -26,7 +26,7 @@ check: test
 
 
 valcheck: test
-	valgrind --track-origins=yes --leak-check=full ./test
+	valgrind --track-origins=yes --leak-check=full -s ./test
 
 clean: 
 	rm -f test.o ane.o test nanbox.o parseInput.o execStack.o

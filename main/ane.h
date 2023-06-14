@@ -21,17 +21,17 @@ callStack {
 } callStack;
 
 typedef struct
-UDF {
-    double* function;
+udf {
     char* name;
+    int hp;
     int name_strlen;
     int args;
-} UDF;
+} udf;
 
 double 
 makeBox(uint32_t op, uint32_t tag);
 
-enum tag_type { MATH_OPERATION = 0x7ff8, PREBUILT, USERDEF, STRING, STRING_OPERATION, READWRITE}; // nantag 
+enum tag_type { MATH_OPERATION = 0x7ff8, PREBUILT, USERDEF, STRING, STRING_OPERATION, READWRITE, DELIMITER}; // nantag 
 enum prebuilt_op { DUP, SWAP, ZAP};
 enum math_op { PLUS, MINUS, MULTIPLY, DIVIDE };
 enum string_op { STRCAT, STRLEN };
@@ -51,13 +51,11 @@ get_tag(double nanbox);
 //
 
 // String Reading 
-void read_string(char* strings, int* strings_pos, const char** sp);
-
 void
-parseInput(double* call, const char* input, int* call_size, UDF** udfs, int* udf_count, char strings[], int* string_pos);
+parseInput(double* call, const char* input, int* call_size, double* heap, int* hp, udf* functions[], int* udf_count);
 
 int // Returns error code
-execStack(double* stack, double* call, int call_size, int* sp, FILE* output, char* strings, int* string_pos);
+execStack(double* stack, double* call, int call_size, int* sp, double* heap, int* hp);
 
 void
 ane(FILE* input, int* valid_pass, FILE* output);

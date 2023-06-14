@@ -24,12 +24,9 @@ divide(double a, double b) {return b / a;}
 //
 
 static int
-run_math(double* stack, int* sp, double arg, FILE* fp) {
+run_math(double* stack, int* sp, double arg) {
     double (*math_op[4]) (double a, double b);
     math_op[0] = add; math_op[1] = sub; math_op[2] = mult; math_op[3] = divide;
-
-    if(*sp < 1) // popping non existant value
-        return 1;
 
     double a = pop(stack, &(*sp));
     double b = pop(stack, &(*sp));
@@ -69,62 +66,73 @@ run_prebuilt(double* stack, int* sp, double arg) {
 }
 
 static void
-run_strcat(double* stack, int* sp, char* strings, int* string_pos) {
+string_strcat(double* stack, int* sp, double* heap, int* hp) {
+    int cdr_heap_pos = get_op(pop(stack, &(*sp)));
+    int con_heap_pos = get_op(pop(stack, &(*sp)));
 
-    char con[100];
-    char cdr[100];
+    char string[100];
 
-    int pos_cdr = get_op(pop(stack, &(*sp)));
-    int pos_con = get_op(pop(stack, &(*sp)));
-    strcpy(con, strings + pos_con);
-    strcpy(cdr, strings + pos_cdr);
+    strcpy(string, (char*) &heap[con_heap_pos]);
+    strcat(string, (char*) &heap[cdr_heap_pos]);
 
-    strcat(con, cdr);
-    strcpy(strings + *string_pos, con); // Placing The Copied String Back Onto The Head
-    push(stack, &(*sp), makeBox(*string_pos, STRING));
+    push(stack, &(*sp), makeBox(*hp, STRING));
 
-    *string_pos += strlen(con) + 1; // Updating The String Pos After The New String Was Added
+    char* curr;
+    int idx = 0;
+    for(char* ch = string; *ch != '\0'; ch++) {
+
+        curr = (char*) &heap[*hp];
+        curr[idx++] = *ch;
+
+        if(idx == 8) {
+            (*hp)++;
+            idx = 0;
+        }
+    }
+    curr = (char*) &heap[*hp];
+    curr[idx] = '\0';
+    (*hp)++;
 
     return;
 }
 
 static void
-run_strlen(double* stack, int* sp, char* strings, int* string_pos) {
-    duplicate(stack, &(*sp));
-    stack[*sp] = strlen(strings + get_op(stack[*sp]));
-
+run_string_op(double* stack, int* sp, double* heap, int* hp, double arg) { // this code is shit
+    void (*string_op[1]) (double* stack, int* sp, double* heap, int* hp);
+    string_op[0] = string_strcat;
+    string_op[get_op(arg)] (stack, &(*sp), heap, &(*hp));
     return;
 }
-
-static void
-run_string_op(double* stack, int* sp, char* strings, int* string_pos, double arg) { // this code is shit
-    void (*string_op[2]) (double* stack, int* sp, char* strings, int* string_pos);
-    string_op[0] = run_strcat; string_op[1] = run_strlen;
-    string_op[get_op(arg)] (stack, &(*sp), strings, &(*string_pos));
-
-    return;
-}
-
 
 int
-execStack(double* stack, double* call, int call_size, int* sp, FILE* output, char* strings, int* string_pos) {
+execStack(double* stack, double* call, int call_size, int* sp, double* heap, int* hp) {
     int error_code = 0;
 
     for(int call_idx = 0; call_idx < call_size; call_idx++) {
         if(is_num(call[call_idx]) || (get_tag(call[call_idx]) == STRING)) {
+
             push(stack, &(*sp), call[call_idx]);
+
         }
         else if(get_tag(call[call_idx]) == MATH_OPERATION) {
-            error_code = run_math(stack, &(*sp), call[call_idx], output);
-        }
+
+            run_math(stack, &(*sp), call[call_idx]); // watch how/when error code is being returned
+
+        } 
         else if(get_tag(call[call_idx]) == PREBUILT) {
+
             run_prebuilt(stack, &(*sp), call[call_idx]);
+
         }
         else if(get_tag(call[call_idx]) == STRING) {
+
             push(stack, &(*sp), call[call_idx]);
+
         }
         else if(get_tag(call[call_idx]) == STRING_OPERATION) {
-            run_string_op(stack, &(*sp), strings, &(*string_pos), call[call_idx]);
+ 
+            run_string_op(stack, &(*sp), heap, &(*hp), call[call_idx]);
+            
         }
     }
 

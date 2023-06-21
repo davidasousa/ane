@@ -48,3 +48,22 @@ execStack(double* stack, double* call, int call_size, int* sp, double* heap, int
 
     return error_code;
 }
+
+void
+I_comb(double* heap, int* call_size, double* call) {
+
+    int pos = get_op(call[*call_size - 1]);
+    for(double* curr = &heap[pos]; *curr != DELIMITER; curr++) 
+        call[(*call_size)++] = *curr;
+    return;
+}
+
+void
+run_comb(double* heap, double* call, int* call_size, double arg) {
+
+    void (*combs[1]) (double* heap, int* call_size, double* call);
+    combs[0] = I_comb; 
+    combs[get_op(arg)] (heap, call_size, call);
+
+    return;
+}

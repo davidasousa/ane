@@ -156,16 +156,16 @@ makeudf(const char** input, double* heap, int* hp, int* heap_size, udf* function
     return new_udf;
 }
 
+
 int 
 parseInput(double* call, const char* sp, double** heap_ptr, int* hp, int* heap_size, udf** functions_ptr[], int* udf_count, int* udf_lim) {
     double* heap = *heap_ptr;
     udf** functions = *functions_ptr;
 
-    int call_size = 0;
-
     double val; // Place Values Used For Parsing 
     int char_elapsed;
     char arg[100];
+    int call_size = 0;
 
     while(*sp != '\0') {
 
@@ -187,11 +187,8 @@ parseInput(double* call, const char* sp, double** heap_ptr, int* hp, int* heap_s
 
             functions[*udf_count] = makeudf(&sp, heap, hp, heap_size, functions, *udf_count);
             *udf_count += 1;
-
-        }
-        
+        } 
         if(*sp == '"') {
-
             sp++;
 
             int word_len = find_len(sp, '\"') + 1;
@@ -201,40 +198,29 @@ parseInput(double* call, const char* sp, double** heap_ptr, int* hp, int* heap_s
             add_string(heap, hp, heap_size, &sp, word_len);
 
         }
-
         if(is_char_num(*sp)) {
-
             sscanf(sp, "%lg%n", &val, &char_elapsed);
             sp += char_elapsed;
             call[call_size++] = val;
-
         }
-        else 
-        {
-
+        else  {
             sscanf(sp, "%s%n", arg, &char_elapsed);
             sp += char_elapsed;
 
             double parse_result = process_func(arg);
 
-            if(get_tag(parse_result) == COMBINATOR)
-            {
-                int pos = get_op(call[call_size - 1]);
-                for(double* curr = &heap[pos]; *curr != DELIMITER; curr++) 
-                    call[call_size++] = *curr;
+            if(get_tag(parse_result) == COMBINATOR) {
+
+                run_comb(heap, call, &call_size, parse_result);
+
             }
-            else if(parse_result != USERDEF) {// Not A UDF                             
+            else if(parse_result != USERDEF)
                 call[call_size++] = parse_result;
-            }
-            else {
-                for(int idx = 0; idx < *udf_count; idx++) {
-                    if(strcmp(arg, functions[idx] -> name) == 0) {
-                        for(int num = 0; num < functions[idx] -> args; num++) {
+            else 
+                for(int idx = 0; idx < *udf_count; idx++)
+                    if(strcmp(arg, functions[idx] -> name) == 0)
+                        for(int num = 0; num < functions[idx] -> args; num++)
                             call[call_size++] = heap[functions[idx] -> hp + num];
-                        }
-                    }
-                }
-            }
 
         }
     }

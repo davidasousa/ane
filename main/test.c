@@ -49,7 +49,7 @@ test_ane_strings(void) { // For Display Of How This Will Work In A Real User Bas
     fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "David Sousa \n") == 0);
     fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "DavidSousa \n") == 0); // strcat strlen
+    TEST_CHECK(strcmp(str, "DavidSousa \n") == 0);
     fclose(fp);
 }
 
@@ -92,6 +92,7 @@ test_udf_in_udf(void) { // For Display Of How This Will Work In A Real User Base
     fp = fopen("output.txt", "r");
     char str[1000];
     fgets(str, sizeof(str), fp);
+    printf("%s", str);
     TEST_CHECK(strcmp(str, "2.25 \n") == 0);
     fclose(fp);
 
@@ -126,10 +127,61 @@ test_save_load_udf(void) {
     char str[1000];
     fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "24 24 \n") == 0);
-    printf("%s", str);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "24 16 \n") == 0);
     fclose(fp);
 
     
+}
+
+void
+test_complex(void) {
+    int valid_pass;
+    FILE* fp = fopen("input_files/input8.txt", "r");
+    FILE* output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
+
+    fp = fopen("output.txt", "r");
+    char str[1000];
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "5 45 \n") == 0);
+    fclose(fp); 
+}
+
+void
+test_resize(void) {
+    int valid_pass;
+    FILE* fp = fopen("input_files/input9.txt", "r");
+    FILE* output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
+
+    fp = fopen("input_files/input10.txt", "r");
+    output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
+
+    fp = fopen("output.txt", "r");
+    char str[1000];
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "2.5 \n") == 0);
+    fclose(fp); 
+
+    fp = fopen("input_files/input11.txt", "r");
+    output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
+
+    fp = fopen("output.txt", "r");
+    fgets(str, sizeof(str), fp);
+    printf("%s", str);
+    fclose(fp); 
+
 }
 
 TEST_LIST = {
@@ -139,6 +191,8 @@ TEST_LIST = {
     {"ANE Basic UDF Creation", test_create_udf},
     {"ANE Udf In Udf", test_udf_in_udf},
     {"ANE Udf Save/Load", test_save_load_udf},
+    {"ANE Complex", test_complex},
+    {"ANE Resize", test_resize},
     {NULL, NULL}
 };
 

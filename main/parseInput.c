@@ -69,7 +69,6 @@ find_len(const char* str, char delimiter) {
 
 static void
 add_string(double* heap, int* hp, int* heap_size, const char** arg, int strlen) {
-    *arg += 1; // Continuing The Flow Along The String    
     memcpy(&heap[*hp], *arg, sizeof(char) * (strlen - 1));
     ((char*)&heap[*hp])[strlen] = '\0';
     *hp += (strlen / 8 + 1); 
@@ -86,16 +85,14 @@ write_udf(double* heap, int* hp, udf* functions[], int udf_size, char* arg) {
 
         if(strcmp(arg, functions[idx] -> name) == 0) { 
 
-                for(int func_idx = 0; func_idx < functions[idx] -> args; func_idx++) {
-                    heap[*hp] = heap[functions[idx] -> hp + func_idx];
-                    (*hp)++;
-                }
-                heap[(*hp)++] = DELIMITER;
+            for(int func_idx = 0; func_idx < functions[idx] -> args; func_idx++) {
+                heap[*hp] = heap[functions[idx] -> hp + func_idx];
+                (*hp)++;
+            }
         }
 }
 
-
-static int
+    static int
 add_heap_instructions(const char** input, char delimiter, double* heap, int* hp, udf* functions[], int udf_size)
 {
     char arg[100];
@@ -110,18 +107,17 @@ add_heap_instructions(const char** input, char delimiter, double* heap, int* hp,
         }
 
         instructions_num++;
-
         if(is_char_num(**input)) {
             double val;
             sscanf(*input, "%lg%n", &val, &char_elapsed);
             heap[(*hp)++] = val;
         }
-        else
-        {
+        else if(**input == '[') {
+
+        } else {
             sscanf(*input, "%s%n", arg, &char_elapsed);
             *input += char_elapsed;
             double nanbox = process_func(arg);
-
 
             if(nanbox == USERDEF) {
                 write_udf(heap, hp, functions, udf_size, arg);
@@ -129,18 +125,17 @@ add_heap_instructions(const char** input, char delimiter, double* heap, int* hp,
             else
                 heap[(*hp)++] = nanbox;
         }
-
-        
         (*input)++;
     }
+    heap[(*hp)++] = DELIMITER;
     return instructions_num;
 }
 
 static udf*
-makeudf(const char** input, double* heap, int* hp, int* heap_size, udf* functions[], int udf_count) {
+makeudf(const char** input, heap_struct* heap, udf_struct* udfs) {
 
     *input += 2;
-    int pos = *hp;
+    int pos = heap -> hp;
 
     int len = find_len(*input,' ');
     char* name = malloc(sizeof(*name) * (len + 1)); 
@@ -148,7 +143,7 @@ makeudf(const char** input, double* heap, int* hp, int* heap_size, udf* function
     name[len] = '\0';
     *input += len;
 
-    int args = add_heap_instructions(input, ';', heap, hp, functions, udf_count);
+    int args = add_heap_instructions(input, ';', heap -> arr, &heap -> hp, udfs -> functions, udfs -> udf_count);
 
     udf* new_udf = malloc(sizeof(*new_udf));
     *new_udf = (udf) {.args = args, .name = name, .name_strlen = len, .hp = pos};
@@ -156,11 +151,9 @@ makeudf(const char** input, double* heap, int* hp, int* heap_size, udf* function
     return new_udf;
 }
 
-
 int 
-parseInput(double* call, const char* sp, double** heap_ptr, int* hp, int* heap_size, udf** functions_ptr[], int* udf_count, int* udf_lim) {
-    double* heap = *heap_ptr;
-    udf** functions = *functions_ptr;
+parseInput(double* call, const char* sp, heap_struct* heap, udf_struct* udfs) {
+    udf** functions = udfs -> functions;
 
     double val; // Place Values Used For Parsing 
     int char_elapsed;
@@ -173,37 +166,40 @@ parseInput(double* call, const char* sp, double** heap_ptr, int* hp, int* heap_s
             sp++;
             continue; 
         } 
-        
+
         if(*sp == '[') {
 
             sp++;
-            call[call_size++] = makeBox(*hp, QUOTATION);
-            add_heap_instructions(&sp, ']', *heap_ptr, hp, functions, *udf_count);
-            heap[(*hp)++] = DELIMITER;
+            call[call_size++] = makeBox(heap -> hp, QUOTATION);
+            add_heap_instructions(&sp, ']', heap -> arr, &heap -> hp, functions, udfs -> udf_count);
+            heap -> arr[heap -> hp++] = DELIMITER;
 
         } 
-        
         if(*sp == ':') {
 
-            functions[*udf_count] = makeudf(&sp, heap, hp, heap_size, functions, *udf_count);
-            *udf_count += 1;
+            if(udfs -> udf_lim == udfs -> udf_count) {
+                udfs -> udf_lim += 10;
+                functions = realloc(functions, sizeof(*functions) * udfs -> udf_lim);
+                udfs -> functions = functions;
+            }
+
+            udfs -> functions[udfs -> udf_count] = makeudf(&sp, heap, udfs);
+            udfs -> udf_count += 1;
         } 
         if(*sp == '"') {
             sp++;
-
             int word_len = find_len(sp, '\"') + 1;
 
-            call[call_size++] = makeBox(*hp, STRING);
-            sp--;
-            add_string(heap, hp, heap_size, &sp, word_len);
-
+            call[call_size++] = makeBox(heap -> hp, STRING);
+            add_string(heap -> arr, &heap -> hp, &heap -> heap_size, &sp, word_len);
         }
         if(is_char_num(*sp)) {
             sscanf(sp, "%lg%n", &val, &char_elapsed);
             sp += char_elapsed;
             call[call_size++] = val;
         }
-        else  {
+        else
+        {
             sscanf(sp, "%s%n", arg, &char_elapsed);
             sp += char_elapsed;
 
@@ -211,16 +207,15 @@ parseInput(double* call, const char* sp, double** heap_ptr, int* hp, int* heap_s
 
             if(get_tag(parse_result) == COMBINATOR) {
 
-                run_comb(heap, call, &call_size, parse_result);
+                call[call_size++] = process_func(arg);
 
             }
             else if(parse_result != USERDEF)
                 call[call_size++] = parse_result;
             else 
-                for(int idx = 0; idx < *udf_count; idx++)
+                for(int idx = 0; idx < udfs -> udf_count; idx++)
                     if(strcmp(arg, functions[idx] -> name) == 0)
-                        for(int num = 0; num < functions[idx] -> args; num++)
-                            call[call_size++] = heap[functions[idx] -> hp + num];
+                        call[call_size++] = makeBox(functions[idx] -> hp, USERDEF);
 
         }
     }

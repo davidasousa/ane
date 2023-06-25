@@ -31,6 +31,6 @@ valcheck: test
 	valgrind --track-origins=yes --leak-check=full -s ./test
 
 clean: 
-	rm -f test.o ane.o test nanbox.o parseInput.o execStack.o
+	rm -f test.o ane.o test nanbox.o parseInput.o execStack.o prebuilt.o
 
 PHONY: clean valcheck check

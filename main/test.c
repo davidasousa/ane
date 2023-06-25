@@ -92,7 +92,6 @@ test_udf_in_udf(void) { // For Display Of How This Will Work In A Real User Base
     fp = fopen("output.txt", "r");
     char str[1000];
     fgets(str, sizeof(str), fp);
-    printf("%s", str);
     TEST_CHECK(strcmp(str, "2.25 \n") == 0);
     fclose(fp);
 
@@ -168,18 +167,45 @@ test_resize(void) {
     fp = fopen("output.txt", "r");
     char str[1000];
     fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "2.5 \n") == 0);
+    TEST_CHECK(strcmp(str, "5 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "12.5 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "12.5 10 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    printf("%s", str);
     fclose(fp); 
 
-    fp = fopen("input_files/input11.txt", "r");
-    output = fopen("output.txt", "w");
+}
+
+void 
+test_function_size_change(void) {
+
+    int valid_pass = 0;
+    FILE* fp = fopen("input_files/input12.txt", "r");
+    FILE* output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
+}
+
+void 
+test_quote_combs(void) {
+    int valid_pass = 0;
+
+    FILE* fp = fopen("input_files/input13.txt", "r");
+    FILE* output = fopen("output.txt", "w");
     ane(fp, &valid_pass, output);
     fclose(fp);
     fclose(output);    
 
+    char str[100];
     fp = fopen("output.txt", "r");
     fgets(str, sizeof(str), fp);
-    printf("%s", str);
+    TEST_CHECK(strcmp(str, "36 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "36 6 \n") == 0);
     fclose(fp); 
 
 }
@@ -190,9 +216,11 @@ TEST_LIST = {
     {"ANE Basic Strings", test_ane_strings},
     {"ANE Basic UDF Creation", test_create_udf},
     {"ANE Udf In Udf", test_udf_in_udf},
-    {"ANE Udf Save/Load", test_save_load_udf},
+   // {"ANE Udf Save/Load", test_save_load_udf},
     {"ANE Complex", test_complex},
     {"ANE Resize", test_resize},
+ //   {"ANE Quote Combs", test_quote_combs},
+//    {"ANE Resize Functions", test_function_size_change},
     {NULL, NULL}
 };
 

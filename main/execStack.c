@@ -11,59 +11,82 @@ pop(double* stack, int* sp) { return stack[(*sp)--]; }
 
 // Premade Math Operations
 
-int
-execStack(double* stack, double* call, int call_size, int* sp, double* heap, int* hp) {
+static int
+parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
+
+        if(get_tag(arg) == MATH_OPERATION) {
+
+            run_math(stack, &(*sp), arg); // watch how/when error code is being returned
+
+        } 
+        else if(get_tag(arg) == PREBUILT) {
+
+            run_prebuilt(stack, &(*sp), arg);
+
+        }
+        else if(get_tag(arg) == STRING) {
+
+            push(stack, &(*sp), arg);
+
+        }
+        else if(get_tag(arg) == STRING_OPERATION) {
+ 
+            run_string_op(stack, &(*sp), heap -> arr, &heap -> hp, arg);
+            
+        }
+        else if(get_tag(arg) == USERDEF) {
+            int heap_pos = get_op(arg);
+
+            for(double* quote = &heap -> arr[heap_pos]; *quote != DELIMITER; quote++)
+                parse_double(stack, *quote, sp, heap);
+
+        }
+        else if(is_num(arg) || (get_tag(arg) == STRING)) {
+
+            push(stack, &(*sp), arg);
+            
+        } else 
+            return 0;
+        return 1;
+}
+
+static void
+run_I(double* stack, double* call, int* sp, heap_struct* heap, int comb_pos) {
+
+    int quote_pos;
+    for(int idx = 0; idx < comb_pos; idx++) {
+        if(get_tag(call[idx]) == QUOTATION)
+            quote_pos = idx;
+    }
+
+    int heap_pos = get_op(call[quote_pos]);
+
+    for(double* quote = &heap -> arr[heap_pos]; *quote != DELIMITER; quote++) {
+        printf("1");
+        parse_double(stack, *quote, sp, heap);
+
+    }
+    printf("\n");
+    
+
+}
+
+int 
+execStack(double* stack, double* call, int call_size, int* sp, heap_struct* heap) {
     int error_code = 0;
 
     for(int call_idx = 0; call_idx < call_size; call_idx++) {
 
-        if(get_tag(call[call_idx]) == QUOTATION)
+        if(get_tag(call[call_idx]) == COMBINATOR) {
+           run_I(stack, call, sp, heap, call_idx);
+
             continue;
-        else if(is_num(call[call_idx]) || (get_tag(call[call_idx]) == STRING)) {
-
-            push(stack, &(*sp), call[call_idx]);
-
         }
-        else if(get_tag(call[call_idx]) == MATH_OPERATION) {
 
-            run_math(stack, &(*sp), call[call_idx]); // watch how/when error code is being returned
+        parse_double(stack, call[call_idx], sp, heap);
 
-        } 
-        else if(get_tag(call[call_idx]) == PREBUILT) {
-
-            run_prebuilt(stack, &(*sp), call[call_idx]);
-
-        }
-        else if(get_tag(call[call_idx]) == STRING) {
-
-            push(stack, &(*sp), call[call_idx]);
-
-        }
-        else if(get_tag(call[call_idx]) == STRING_OPERATION) {
- 
-            run_string_op(stack, &(*sp), heap, &(*hp), call[call_idx]);
-            
-        }
     }
 
     return error_code;
 }
 
-void
-I_comb(double* heap, int* call_size, double* call) {
-
-    int pos = get_op(call[*call_size - 1]);
-    for(double* curr = &heap[pos]; *curr != DELIMITER; curr++) 
-        call[(*call_size)++] = *curr;
-    return;
-}
-
-void
-run_comb(double* heap, double* call, int* call_size, double arg) {
-
-    void (*combs[1]) (double* heap, int* call_size, double* call);
-    combs[0] = I_comb; 
-    combs[get_op(arg)] (heap, call_size, call);
-
-    return;
-}

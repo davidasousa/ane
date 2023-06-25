@@ -20,6 +20,13 @@ callStack {
     double stack[1000];
 } callStack;
 
+typedef struct 
+heap_struct {
+    double* arr;
+    int hp;
+    int heap_size;
+} heap_struct;
+
 typedef struct
 udf {
     char* name;
@@ -27,6 +34,13 @@ udf {
     int name_strlen;
     int args;
 } udf;
+
+typedef struct 
+udf_struct {
+    udf** functions;
+    int udf_count;
+    int udf_lim;
+} udf_struct;
 
 double 
 makeBox(uint32_t op, uint32_t tag);
@@ -80,13 +94,12 @@ get_op(double nanbox);
 uint32_t
 get_tag(double nanbox);
 
-
 // String Reading 
 int 
-parseInput(double* call, const char* input, double** heap_ptr, int* hp, int* heap_size, udf** functions_ptr[], int* udf_count, int* udf_lim);
+parseInput(double* call, const char* input, heap_struct* heap, udf_struct* udfs);
 
 int // Returns error code
-execStack(double* stack, double* call, int call_size, int* sp, double* heap, int* hp);
+execStack(double* stack, double* call, int call_size, int* sp, heap_struct* heap);
 
 void
 ane(FILE* input, int* valid_pass, FILE* output);

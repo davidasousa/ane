@@ -54,30 +54,32 @@ static void load_funcs(int* udf_count, udf* functions[], double* heap, int* hp, 
     }
 }
 
+
 void
 ane(FILE* stream, int* valid_pass, FILE* output) {
 
     double* call_array = malloc(sizeof(*call_array) * 1000); // Array For Storing The Input
     double* stack = malloc(sizeof(*stack) * 1000);
 
-    double* heap = malloc(sizeof(*heap) * 1000);
-    memset(heap, '\0', 8000);
-    int hp = 0; // points to the last unfilled element in the array
-    int heap_size = 1000;
+    heap_struct* heap = malloc(sizeof(*heap));
+    *heap = (heap_struct) {.arr = malloc(sizeof(double) * 1000), .heap_size = 1000, .hp = 0};
+    memset(heap -> arr, '\0', 8000);
+
+    udf_struct* udfs = malloc(sizeof(*udfs));
+    *udfs = (udf_struct) {.functions = malloc(sizeof(udf) * 10), .udf_lim = 10, .udf_count = 0};
 
     int sp = -1;
  
-    udf** functions = malloc(sizeof(*functions) * 10);
-    int udf_count = 0;
-    int udf_lim = 10;
-
     int size = 0; 
     int max = 0;
     for(char ch = fgetc(stream); ch != EOF; ch = fgetc(stream)) {
+
         if(ch == '\n') {
+
             if(size > max)
                 max = size;
             size = 0;
+
         }
         else
             size++;
@@ -97,30 +99,30 @@ ane(FILE* stream, int* valid_pass, FILE* output) {
 
         if(strcmp(str, "writefuncs") == 0) {
             FILE* udf_fp = fopen("udfs.txt", "w");
-            save_funcs(udf_count, functions, heap, udf_fp);
+            save_funcs(udfs -> udf_count, udfs -> functions, heap -> arr, udf_fp);
             fclose(udf_fp);
             continue;
         }
 
         if(strcmp(str, "loadfuncs") == 0) {
             FILE* udf_fp = fopen("udfs.txt", "r");
-            load_funcs(&udf_count, functions, heap, &hp, udf_fp);
+            load_funcs(&udfs -> udf_count, udfs -> functions, heap -> arr, &heap -> hp, udf_fp);
             fclose(udf_fp);
             continue;
         }
 
-        int call_size = parseInput(call_array, str, &heap, &hp, &heap_size, &functions, &udf_count, &udf_lim);
-        execStack(stack, call_array, call_size, &sp, heap, &hp);
+        // Running Each Line
 
-        // Printing Errors Based On The Value Of Pass
+        int call_size = parseInput(call_array, str, heap, udfs);
+        execStack(stack, call_array, call_size, &sp, heap);
 
-        for(int idx = 0; idx <= sp; idx++) { // Writing The Output - Right Now Only Doubles And Strings
+        for(int idx = 0; idx <= sp; idx++) {
 
             if(is_num(stack[idx]) && call_size > 0)
                 fprintf(output, "%lg ", stack[idx]);
 
             else if(get_tag(stack[idx]) == STRING && call_size > 0) {
-                fprintf(output, "%s ", (char*) &heap[get_op(stack[idx])]);
+                fprintf(output, "%s ", (char*) &heap -> arr[get_op(stack[idx])]);
 
             }
         }
@@ -128,21 +130,22 @@ ane(FILE* stream, int* valid_pass, FILE* output) {
         if(call_size)
             fprintf(output, "\n");
 
-        // End Writing 
     }
 
     //Freeing Used Arrays
     free(stack); 
     free(call_array);
+    free(heap -> arr);
     free(heap);
     free(str);
 
-    for(int idx = 0; idx < udf_count; idx++) { // the realloc is not applied to the original array
-        free(functions[idx] -> name);
-        free(functions[idx]);
+    for(int idx = 0; idx < udfs -> udf_count; idx++) { // the realloc is not applied to the original array
+        free(udfs -> functions[idx] -> name);
+        free(udfs -> functions[idx]);
     }
 
-    free(functions);
+    free(udfs -> functions);
+    free(udfs);
 
     return;
 }

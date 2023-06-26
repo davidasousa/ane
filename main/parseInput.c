@@ -194,6 +194,7 @@ parseInput(double* call, const char* sp, heap_struct* heap, udf_struct* udfs) {
             call[call_size++] = makeBox(heap -> hp, STRING);
             add_string(heap -> arr, &heap -> hp, &heap -> heap_size, &sp, word_len);
         }
+
         if(is_char_num(*sp)) {
             sscanf(sp, "%lg%n", &val, &char_elapsed);
             sp += char_elapsed;

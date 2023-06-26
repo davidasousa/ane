@@ -19,6 +19,10 @@ parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
             run_math(stack, &(*sp), arg); // watch how/when error code is being returned
 
         } 
+        else if(get_tag(arg) == QUOTATION) {
+
+            push(stack, &(*sp), arg);
+        }
         else if(get_tag(arg) == PREBUILT) {
 
             run_prebuilt(stack, &(*sp), arg);
@@ -41,7 +45,7 @@ parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
                 parse_double(stack, *quote, sp, heap);
 
         }
-        else if(is_num(arg) || (get_tag(arg) == STRING)) {
+        else if(is_num(arg)) {
 
             push(stack, &(*sp), arg);
             
@@ -50,24 +54,36 @@ parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
         return 1;
 }
 
-static void
-run_I(double* stack, double* call, int* sp, heap_struct* heap, int comb_pos) {
-
-    int quote_pos;
-    for(int idx = 0; idx < comb_pos; idx++) {
-        if(get_tag(call[idx]) == QUOTATION)
-            quote_pos = idx;
-    }
-
-    int heap_pos = get_op(call[quote_pos]);
-
-    call[quote_pos] = '\0';
-
-    for(double* quote = &heap -> arr[heap_pos]; *quote != DELIMITER; quote++) {
-        parse_double(stack, *quote, sp, heap);
-    }
-
+static int 
+find_quote(double* stack, int size) {
+    int pos = 0;
+    for(int idx = 0; idx <= size; idx++)
+        if(get_tag(stack[idx]) == QUOTATION)
+            pos = idx;
+    return pos;
 }
+
+static void
+remove_from_stack(double* stack, int* size, int pos) {
+    for (int i = pos; i < (*size - 1); i++)
+            stack[i] = stack[i + 1];
+    (*size)--;
+    return;
+}
+
+static void
+run_I(double* stack, double* call, int* sp, heap_struct* heap, int* stack_size) {
+
+    int quote_pos = find_quote(stack, *sp);
+    int heap_pos = get_op(stack[quote_pos]);
+    remove_from_stack(stack, stack_size, quote_pos);
+    (*sp)--;
+
+    for(double* curr = &heap -> arr[heap_pos]; *curr != DELIMITER; curr++) {
+        parse_double(stack, *curr, sp, heap);
+    }
+}
+
 
 int 
 execStack(double** stack, double* call, int call_size, int* sp, int* stack_size, heap_struct* heap) {
@@ -81,7 +97,8 @@ execStack(double** stack, double* call, int call_size, int* sp, int* stack_size,
         }
 
         if(get_tag(call[call_idx]) == COMBINATOR) {
-           run_I(*stack, call, sp, heap, call_idx);
+           run_I(*stack, call, &(*sp), heap, stack_size);
+
 
             continue;
         }

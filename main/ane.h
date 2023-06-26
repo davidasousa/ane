@@ -42,6 +42,13 @@ udf_struct {
     int udf_lim;
 } udf_struct;
 
+typedef struct 
+stack_struct {
+    double* stack;
+    int sp;
+    int stack_size;
+} stack_struct;
+
 double 
 makeBox(uint32_t op, uint32_t tag);
 
@@ -99,7 +106,7 @@ int
 parseInput(double* call, const char* input, heap_struct* heap, udf_struct* udfs);
 
 int // Returns error code
-execStack(double* stack, double* call, int call_size, int* sp, heap_struct* heap);
+execStack(double** stack_ptr, double* call, int call_size, int* sp, int* stack_size, heap_struct* heap);
 
 void
 ane(FILE* input, int* valid_pass, FILE* output);

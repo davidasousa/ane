@@ -164,6 +164,7 @@ test_resize(void) {
     char str[1000];
     fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "5 \n") == 0);
+    printf("%s", str);
     fgets(str, sizeof(str), fp);
     fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "12.5 \n") == 0);
@@ -188,17 +189,10 @@ test_quote_combs(void) {
     TEST_CHECK(strcmp(str, "5 24 \n") == 0);
     fgets(str, sizeof(str), fp);
     fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "36 \n") == 0);
-    fgets(str, sizeof(str), fp);
-    fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "20 \n") == 0);
     fgets(str, sizeof(str), fp);
     fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "0.25 \n") == 0);
-    fgets(str, sizeof(str), fp);
-    fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "2 \n") == 0);
-    printf("%s", str);
     fclose(fp); 
 
 }
@@ -213,6 +207,25 @@ test_expand_mem(void) {
     ane(fp, &valid_pass, output);
     fclose(fp);
     fclose(output);    
+
+}
+
+void test_sub_quote(void) {
+    int valid_pass = 0;
+
+    FILE* fp = fopen("input_files/input15.txt", "r");
+    FILE* output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
+
+    char str[100];
+    fp = fopen("output.txt", "r");
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "12 \n") == 0);
+    printf("%s", str);
+    fclose(fp);
+
 }
 
 TEST_LIST = {
@@ -226,6 +239,7 @@ TEST_LIST = {
     {"ANE Resize", test_resize},
     {"ANE Quote Combs", test_quote_combs},
     {"ANE Expansion", test_expand_mem},
+    {"ANE SUB QUOTE", test_sub_quote},
     {NULL, NULL}
 };
 

@@ -125,12 +125,8 @@ test_save_load_udf(void) {
     fp = fopen("output.txt", "r");
     char str[1000];
     fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "24 24 \n") == 0);
-    fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "24 16 \n") == 0);
-    fclose(fp);
-
-    
+    TEST_CHECK(strcmp(str, "50 \n") == 0);
+    fclose(fp);    
 }
 
 void
@@ -173,21 +169,7 @@ test_resize(void) {
     TEST_CHECK(strcmp(str, "12.5 \n") == 0);
     fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "12.5 10 \n") == 0);
-    fgets(str, sizeof(str), fp);
-    printf("%s", str);
     fclose(fp); 
-
-}
-
-void 
-test_function_size_change(void) {
-
-    int valid_pass = 0;
-    FILE* fp = fopen("input_files/input12.txt", "r");
-    FILE* output = fopen("output.txt", "w");
-    ane(fp, &valid_pass, output);
-    fclose(fp);
-    fclose(output);    
 }
 
 void 
@@ -203,11 +185,34 @@ test_quote_combs(void) {
     char str[100];
     fp = fopen("output.txt", "r");
     fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "5 24 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "36 \n") == 0);
     fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "36 6 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "20 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "0.25 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "2 \n") == 0);
+    printf("%s", str);
     fclose(fp); 
 
+}
+
+void 
+test_expand_mem(void) {
+
+    int valid_pass = 0;
+
+    FILE* fp = fopen("input_files/input14.txt", "r");
+    FILE* output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
 }
 
 TEST_LIST = {
@@ -216,11 +221,11 @@ TEST_LIST = {
     {"ANE Basic Strings", test_ane_strings},
     {"ANE Basic UDF Creation", test_create_udf},
     {"ANE Udf In Udf", test_udf_in_udf},
-   // {"ANE Udf Save/Load", test_save_load_udf},
+    {"ANE Udf Save/Load", test_save_load_udf},
     {"ANE Complex", test_complex},
     {"ANE Resize", test_resize},
- //   {"ANE Quote Combs", test_quote_combs},
-//    {"ANE Resize Functions", test_function_size_change},
+    {"ANE Quote Combs", test_quote_combs},
+    {"ANE Expansion", test_expand_mem},
     {NULL, NULL}
 };
 

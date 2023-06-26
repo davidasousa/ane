@@ -61,29 +61,32 @@ run_I(double* stack, double* call, int* sp, heap_struct* heap, int comb_pos) {
 
     int heap_pos = get_op(call[quote_pos]);
 
-    for(double* quote = &heap -> arr[heap_pos]; *quote != DELIMITER; quote++) {
-        printf("1");
-        parse_double(stack, *quote, sp, heap);
+    call[quote_pos] = '\0';
 
+    for(double* quote = &heap -> arr[heap_pos]; *quote != DELIMITER; quote++) {
+        parse_double(stack, *quote, sp, heap);
     }
-    printf("\n");
-    
 
 }
 
 int 
-execStack(double* stack, double* call, int call_size, int* sp, heap_struct* heap) {
+execStack(double** stack, double* call, int call_size, int* sp, int* stack_size, heap_struct* heap) {
     int error_code = 0;
 
     for(int call_idx = 0; call_idx < call_size; call_idx++) {
 
+        if(*stack_size - 1 <= *sp) {
+            *stack_size += 1000;
+            *stack = realloc(*stack, sizeof(**stack) * (*stack_size));
+        }
+
         if(get_tag(call[call_idx]) == COMBINATOR) {
-           run_I(stack, call, sp, heap, call_idx);
+           run_I(*stack, call, sp, heap, call_idx);
 
             continue;
         }
 
-        parse_double(stack, call[call_idx], sp, heap);
+        parse_double(*stack, call[call_idx], sp, heap);
 
     }
 

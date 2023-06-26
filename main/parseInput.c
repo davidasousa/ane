@@ -92,7 +92,7 @@ write_udf(double* heap, int* hp, udf* functions[], int udf_size, char* arg) {
         }
 }
 
-    static int
+static int
 add_heap_instructions(const char** input, char delimiter, double* heap, int* hp, udf* functions[], int udf_size)
 {
     char arg[100];
@@ -113,6 +113,7 @@ add_heap_instructions(const char** input, char delimiter, double* heap, int* hp,
             heap[(*hp)++] = val;
         }
         else if(**input == '[') {
+            printf("FUCK");
 
         } else {
             sscanf(*input, "%s%n", arg, &char_elapsed);
@@ -212,10 +213,15 @@ parseInput(double* call, const char* sp, heap_struct* heap, udf_struct* udfs) {
             }
             else if(parse_result != USERDEF)
                 call[call_size++] = parse_result;
-            else 
-                for(int idx = 0; idx < udfs -> udf_count; idx++)
-                    if(strcmp(arg, functions[idx] -> name) == 0)
+            else {
+                for(int idx = 0; idx < udfs -> udf_count; idx++) {
+                    if(strcmp(arg, functions[idx] -> name) == 0) {
                         call[call_size++] = makeBox(functions[idx] -> hp, USERDEF);
+                    }
+
+                }
+
+            }
 
         }
     }

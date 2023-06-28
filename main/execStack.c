@@ -54,36 +54,15 @@ parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
         return 1;
 }
 
-static int 
-find_quote(double* stack, int size) {
-    int pos = 0;
-    for(int idx = 0; idx <= size; idx++)
-        if(get_tag(stack[idx]) == QUOTATION)
-            pos = idx;
-    return pos;
-}
-
-static void
-remove_from_stack(double* stack, int* size, int pos) {
-    for (int i = pos; i < (*size - 1); i++)
-            stack[i] = stack[i + 1];
-    (*size)--;
-    return;
-}
-
 static void
 run_I(double* stack, double* call, int* sp, heap_struct* heap, int* stack_size) {
 
-    int quote_pos = find_quote(stack, *sp);
-    int heap_pos = get_op(stack[quote_pos]);
-    remove_from_stack(stack, stack_size, quote_pos);
-    (*sp)--;
+    int heap_pos = get_op(pop(stack, sp));
 
-    for(double* curr = &heap -> arr[heap_pos]; *curr != DELIMITER; curr++) {
+    for(double* curr = &heap -> arr[heap_pos]; *curr != DELIMITER; curr++)
         parse_double(stack, *curr, sp, heap);
-    }
-}
 
+}
 
 int 
 execStack(double** stack, double* call, int call_size, int* sp, int* stack_size, heap_struct* heap) {

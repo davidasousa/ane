@@ -164,7 +164,6 @@ test_resize(void) {
     char str[1000];
     fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "5 \n") == 0);
-    printf("%s", str);
     fgets(str, sizeof(str), fp);
     fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "12.5 \n") == 0);
@@ -222,8 +221,16 @@ void test_sub_quote(void) {
     char str[100];
     fp = fopen("output.txt", "r");
     fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "12 \n") == 0);
-    printf("%s", str);
+    TEST_CHECK(strcmp(str, "8 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "20 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "7 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "28 \n") == 0);
     fclose(fp);
 
 }

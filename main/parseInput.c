@@ -24,8 +24,11 @@ static const char* quote_ops[] = {
     [I] = "I",
 };
 
+static bool
+is_char_num(char ch) { return (ch >= '0' && ch <= '9'); }
+
 static double
-process_func(const char* input) { // Take A Given Char* Input & Associate With The Right Function
+process_arg(const char* input) { // Take A Given Char* Input & Associate With The Right Function
 
     int prebuilt_length = sizeof(prebuilt_ops) / sizeof(prebuilt_ops[0]);
     int math_length = sizeof(math_ops) / sizeof(math_ops[0]);
@@ -75,9 +78,6 @@ add_string(double* heap, int* hp, int* heap_size, const char** arg, int strlen) 
     return;
 }
 
-static bool
-is_char_num(char ch) { return (ch >= '0' && ch <= '9'); }
-
 static void
 write_udf(double* heap, int* hp, udf* functions[], int udf_size, char* arg) {
 
@@ -92,7 +92,6 @@ write_udf(double* heap, int* hp, udf* functions[], int udf_size, char* arg) {
         }
 }
 
-// cases like [  ] [  ] I 4 + I worked before making changes
 static void 
 skip_over(const char** ch, char delim) {
     while(**ch != delim) 
@@ -101,10 +100,9 @@ skip_over(const char** ch, char delim) {
 }
 
 
-static int
+    static int
 write_function_heap(const char** ch, char delimiter, heap_struct* heap, udf* functions[], int udf_size)
 {
-    (*ch)++;
     char arg[100];
     int char_elapsed = 0;
     int instructions_num = 0;
@@ -112,9 +110,8 @@ write_function_heap(const char** ch, char delimiter, heap_struct* heap, udf* fun
     while(**ch != delimiter)
     {
 
-        if(**ch == '[') {
+        if(**ch == '[')
             skip_over(ch, ']');
-        }
 
         if(**ch == ' ') {
             (*ch)++;
@@ -127,7 +124,7 @@ write_function_heap(const char** ch, char delimiter, heap_struct* heap, udf* fun
         } else {
             sscanf(*ch, "%s%n", arg, &char_elapsed);
             *ch += char_elapsed;
-            double nanbox = process_func(arg);
+            double nanbox = process_arg(arg);
 
             if(nanbox == USERDEF) {
                 write_udf(heap -> arr, &heap -> hp, functions, udf_size, arg);
@@ -148,78 +145,80 @@ makeudf(const char** input, heap_struct* heap, udf_struct* udfs) {
     *input += 2;
     int pos = heap -> hp;
 
+    // Reading Name
     int len = find_len(*input,' ');
     char* name = malloc(sizeof(*name) * (len + 1)); 
     memcpy(name, *input, sizeof(*name) * (len + 1));
     name[len] = '\0';
     *input += len;
 
+    // Writing Function Contents To Mem
+    (*input)++;
     int args = write_function_heap(input, ';', heap , udfs -> functions, udfs -> udf_count);
     heap -> arr[(heap -> hp)++] = DELIMITER;
 
+    // Adding Udf To Udf Array
     udf* new_udf = malloc(sizeof(*new_udf));
     *new_udf = (udf) {.args = args, .name = name, .name_strlen = len, .hp = pos};
 
     return new_udf;
 }
 
-static int // returns the heap pointer for the entire quotation
+static int
 create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs, int udf_size) {
-
     const char* start_pos = *ch;
-
-    int quotes[10];
+    int* quotes = malloc(sizeof(*quotes) * 10);
     int idx = 0;
 
-    for( ; **ch != ']'; (*ch)++) {
-
-        printf("%c", **ch);
+    for( ; **ch != ']'; (*ch)++) // Recursive Case - QUOTATIONS ARE MADE OUTWARD -> Bigger Quotations Later
         if(**ch == '[') {
-            printf("A");
             (*ch)++;
             quotes[idx++] = create_quotation(ch, heap, udfs, udf_size);
         }
-    }
 
-    *ch = start_pos;
+    *ch = start_pos + 1;
 
-    (*ch)++;
     char arg[100];
     int char_elapsed = 0;
-
     int hp = heap -> hp;
     idx = 0;
+    double val;
+
     while(**ch != ']')
     {
+        switch(**ch) {
 
-        if(**ch == '[') {
-            heap -> arr[(heap -> hp)++] = makeBox(quotes[idx++], QUOTATION);
-            skip_over(ch, ']');
-        }
+            case '[' :;
+                heap -> arr[(heap -> hp)++] = makeBox(quotes[idx++], QUOTATION);
+                skip_over(ch, ']');
+                break;
+            case ' ' :;
+                (*ch)++;
+                continue;
+            default:;
 
-        if(**ch == ' ') {
-            (*ch)++;
-            continue;
-        }
-        if(is_char_num(**ch)) {
-            double val;
-            sscanf(*ch, "%lg%n", &val, &char_elapsed);
-            heap -> arr[(heap -> hp)++] = val;
-        } else {
-            sscanf(*ch, "%s%n", arg, &char_elapsed);
-            *ch += char_elapsed;
-            double nanbox = process_func(arg);
+                if(is_char_num(**ch)) {                         // numerical arg
+                    sscanf(*ch, "%lg%n", &val, &char_elapsed);
+                    heap -> arr[(heap -> hp)++] = val;
+                } else {                                        // textual arg
+                    sscanf(*ch, "%s%n", arg, &char_elapsed);
+                    *ch += char_elapsed;
+                    val = process_arg(arg);
 
-            if(nanbox == USERDEF) {
-                write_udf(heap -> arr, &heap -> hp, udfs -> functions, udfs -> udf_count, arg);
-            }
-            else
-                heap -> arr[(heap -> hp)++] = nanbox;
+                    if(val == USERDEF) {
+                        write_udf(heap -> arr, &heap -> hp, udfs -> functions, udfs -> udf_count, arg);
+                    }
+                    else {
+                        heap -> arr[(heap -> hp)++] = val;
+                    }
+                }
+
         }
         (*ch)++;
     }
-    heap -> arr[heap -> hp++] = DELIMITER;
 
+    heap -> arr[heap -> hp++] = DELIMITER;
+    free(quotes);
     return hp;
 }
 
@@ -233,68 +232,62 @@ parseInput(double* call, const char* sp, heap_struct* heap, udf_struct* udfs) {
     int call_size = 0;
 
     while(*sp != '\0') {
+        switch(*sp) {
+            case ' ' :
+                sp++;
+                break;
 
-        if(*sp == ' ') {
-            sp++;
-            continue; 
-        } 
+            case '[' :;
 
-        if(*sp == '[') {
+                sp++;
+                int hp = create_quotation(&sp, heap, udfs, udfs -> udf_count);
+                call[call_size++] = makeBox(hp, QUOTATION);
+                break;
 
-            sp++;
-            int hp = create_quotation(&sp, heap, udfs, udfs -> udf_count);
-            call[call_size++] = makeBox(hp, QUOTATION);
+            case ':' :;
 
-        } 
-        if(*sp == ':') {
-
-            if(udfs -> udf_lim == udfs -> udf_count) {
-                udfs -> udf_lim += 10;
-                functions = realloc(functions, sizeof(*functions) * udfs -> udf_lim);
-                udfs -> functions = functions;
-            }
-
-            udfs -> functions[udfs -> udf_count] = makeudf(&sp, heap, udfs);
-            udfs -> udf_count += 1;
-        } 
-        if(*sp == '"') {
-            sp++;
-            int word_len = find_len(sp, '\"') + 1;
-
-            call[call_size++] = makeBox(heap -> hp, STRING);
-            add_string(heap -> arr, &heap -> hp, &heap -> heap_size, &sp, word_len);
-        }
-
-        if(is_char_num(*sp)) {
-            sscanf(sp, "%lg%n", &val, &char_elapsed);
-            sp += char_elapsed;
-            call[call_size++] = val;
-        }
-        else
-        {
-            sscanf(sp, "%s%n", arg, &char_elapsed);
-            sp += char_elapsed;
-
-            double parse_result = process_func(arg);
-
-            if(get_tag(parse_result) == COMBINATOR) {
-
-                call[call_size++] = process_func(arg);
-
-            }
-            else if(parse_result != USERDEF)
-                call[call_size++] = parse_result;
-            else {
-                for(int idx = 0; idx < udfs -> udf_count; idx++) {
-                    if(strcmp(arg, functions[idx] -> name) == 0) {
-                        call[call_size++] = makeBox(functions[idx] -> hp, USERDEF);
-                    }
-
+                // CHECK UDF LIM REALLOC
+                if(udfs -> udf_lim == udfs -> udf_count) {
+                    udfs -> udf_lim += 10;
+                    functions = realloc(functions, sizeof(*functions) * udfs -> udf_lim);
+                    udfs -> functions = functions;
                 }
+                // END UDF LIM REALLOC 
+                udfs -> functions[udfs -> udf_count] = makeudf(&sp, heap, udfs);
+                udfs -> udf_count += 1;
+                break;
 
-            }
+            case '"' :;
+                int word_len = find_len(++sp, '\"') + 1;
+                call[call_size++] = makeBox(heap -> hp, STRING);
+                add_string(heap -> arr, &heap -> hp, &heap -> heap_size, &(sp), word_len);
+                break;
 
+            default:
+
+                if(is_char_num(*sp)) {
+                    sscanf(sp, "%lg%n", &val, &char_elapsed);
+                    sp += char_elapsed;
+                    call[call_size++] = val;
+                }
+                else 
+                {
+                    sscanf(sp, "%s%n", arg, &char_elapsed);
+                    sp += char_elapsed;
+
+                    double parse_result = process_arg(arg);
+
+                    if(parse_result != USERDEF)
+                        call[call_size++] = parse_result;
+                    else
+                        for(int idx = 0; idx < udfs -> udf_count; idx++)
+                            if(strcmp(arg, functions[idx] -> name) == 0)
+                                call[call_size++] = makeBox(functions[idx] -> hp, USERDEF);
+                }
+// end
         }
+
+
     }
     return call_size;
 }

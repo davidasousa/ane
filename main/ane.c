@@ -115,6 +115,8 @@ ane(FILE* stream, int* valid_pass, FILE* output) {
         int call_size = parseInput(call_array, str, heap, udfs);
         execStack(&stack -> stack, call_array, call_size, &stack -> sp, &stack -> stack_size, heap);
 
+        // Writing The Result Output
+
         for(int idx = 0; idx <= stack -> sp; idx++) {
 
             if(is_num(stack -> stack[idx]) && call_size > 0)

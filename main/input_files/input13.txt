@@ -1,0 +1,7 @@
+: quad 4 * ;
+5 5 [ quad 4 + ] I
+zap zap
+4 [ quad 4 + ] I
+zap
+3 [ dup quad / ] I
+q

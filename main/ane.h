@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 
 union 
 d64 {
@@ -52,11 +53,13 @@ stack_struct {
 double 
 makeBox(uint32_t op, uint32_t tag);
 
+// ENUMS
+
 enum tag_type { MATH_OPERATION = 0x7ff8, PREBUILT, USERDEF, STRING, STRING_OPERATION, READWRITE, DELIMITER, QUOTATION, COMBINATOR}; // nantag 
-enum prebuilt_op { DUP, SWAP, ZAP};
+enum prebuilt_op { DUP, SWAP, ZAP, CLEAR};
 enum math_op { PLUS, MINUS, MULTIPLY, DIVIDE };
 enum string_op { STRCAT, STRLEN };
-enum comb_op { I };
+enum comb_op { I , BI };
 
 // PREBUILT OPERATIONS
 

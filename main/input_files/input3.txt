@@ -1,3 +1,3 @@
-"David" "Sousa"
-strcat
+: sq dup * ;
+4 sq
 q

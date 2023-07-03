@@ -1,0 +1,3 @@
+loadfuncs
+5 sq quad 50 -
+q

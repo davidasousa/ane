@@ -1,0 +1,4 @@
+: sq dup * ;
+: quad 4 * ;
+writefuncs
+q

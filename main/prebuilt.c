@@ -49,11 +49,14 @@ swap(double* stack, int* sp) {
 void
 zap(double* stack, int* sp) { (*sp)--; }
 
+void
+clear(double* stack, int* sp) { *sp = -1; }
+
 // Prebuilt Functions
 void
 run_prebuilt(double* stack, int* sp, double arg) {
-    void (*pre_op[3]) (double* stack, int* sp);
-    pre_op[0] = duplicate; pre_op[1] = swap; pre_op[2] = zap;
+    void (*pre_op[4]) (double* stack, int* sp);
+    pre_op[0] = duplicate; pre_op[1] = swap; pre_op[2] = zap; pre_op[3] = clear;
     pre_op[get_op(arg)] (&(*stack), &(*sp));
 
     return;

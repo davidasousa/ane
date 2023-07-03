@@ -1,0 +1,4 @@
+: quad 4 * ;
+: half 2 / ;
+5 quad half
+q

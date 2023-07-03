@@ -1,0 +1,3 @@
+loadfuncs
+4 combo
+q

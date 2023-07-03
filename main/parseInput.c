@@ -5,7 +5,8 @@
 static const char* prebuilt_ops[] = {
     [DUP] = "dup",
     [SWAP] = "swap",
-    [ZAP] = "zap"
+    [ZAP] = "zap",
+    [CLEAR] = "clear"
 };
 
 static const char* math_ops[] = {
@@ -20,8 +21,9 @@ static const char* string_ops[] = {
     [STRLEN] = "strlen"
 };
 
-static const char* quote_ops[] = {
+static const char* combs[] = {
     [I] = "I",
+    [BI] = "bi",
 };
 
 static bool
@@ -33,7 +35,7 @@ process_arg(const char* input) { // Take A Given Char* Input & Associate With Th
     int prebuilt_length = sizeof(prebuilt_ops) / sizeof(prebuilt_ops[0]);
     int math_length = sizeof(math_ops) / sizeof(math_ops[0]);
     int string_op_length = sizeof(string_ops) / sizeof(string_ops[0]);
-    int quote_op_length = sizeof(quote_ops) / sizeof(quote_ops[0]);
+    int comb_length = sizeof(combs) / sizeof(combs[0]);
 
     // Detecting Potentital Prebuilt
     for(int idx = 0; idx < prebuilt_length; idx++) {
@@ -54,8 +56,8 @@ process_arg(const char* input) { // Take A Given Char* Input & Associate With Th
     }
 
     // Detecting Potentital Quote Op
-    for(int idx = 0; idx < quote_op_length; idx++) {
-        if(strcmp(input, quote_ops[idx]) == 0)
+    for(int idx = 0; idx < comb_length; idx++) {
+        if(strcmp(input, combs[idx]) == 0)
             return makeBox(idx, COMBINATOR);
     }
     return USERDEF; // Userdef because it wasnt detected by another type, this should check if it is in the valid array of udfs and then return error else 
@@ -101,39 +103,38 @@ skip_over(const char** ch, char delim) {
 
 
     static int
-write_function_heap(const char** ch, char delimiter, heap_struct* heap, udf* functions[], int udf_size)
-{
+write_function_heap(const char** ch, char delimiter, heap_struct* heap, udf* functions[], int udf_size) {
     char arg[100];
     int char_elapsed = 0;
     int instructions_num = 0;
 
-    while(**ch != delimiter)
-    {
+    while(**ch != delimiter) {
+        switch(**ch) {
+            case '[' :;
+                skip_over(ch, ']');
+                break;
+            case ' ' :;
+                (*ch)++;
+                break;
+            default :;
+                if(is_char_num(**ch)) {
+                    double val;
+                    sscanf(*ch, "%lg%n", &val, &char_elapsed);
+                    heap -> arr[(heap -> hp)++] = val;
+                } else {
+                    sscanf(*ch, "%s%n", arg, &char_elapsed);
+                    *ch += char_elapsed;
+                    double nanbox = process_arg(arg);
 
-        if(**ch == '[')
-            skip_over(ch, ']');
-
-        if(**ch == ' ') {
-            (*ch)++;
-            continue;
+                    if(nanbox == USERDEF) {
+                        write_udf(heap -> arr, &heap -> hp, functions, udf_size, arg);
+                    }
+                    else
+                        heap -> arr[(heap -> hp)++] = nanbox;
+                }
+                (*ch)++;
+                instructions_num++;
         }
-        if(is_char_num(**ch)) {
-            double val;
-            sscanf(*ch, "%lg%n", &val, &char_elapsed);
-            heap -> arr[(heap -> hp)++] = val;
-        } else {
-            sscanf(*ch, "%s%n", arg, &char_elapsed);
-            *ch += char_elapsed;
-            double nanbox = process_arg(arg);
-
-            if(nanbox == USERDEF) {
-                write_udf(heap -> arr, &heap -> hp, functions, udf_size, arg);
-            }
-            else
-                heap -> arr[(heap -> hp)++] = nanbox;
-        }
-        (*ch)++;
-        instructions_num++;
     }
     heap -> arr[heap -> hp++] = DELIMITER;
     return instructions_num;
@@ -141,7 +142,6 @@ write_function_heap(const char** ch, char delimiter, heap_struct* heap, udf* fun
 
 static udf*
 makeudf(const char** input, heap_struct* heap, udf_struct* udfs) {
-
     *input += 2;
     int pos = heap -> hp;
 
@@ -166,6 +166,9 @@ makeudf(const char** input, heap_struct* heap, udf_struct* udfs) {
 
 static int
 create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs, int udf_size) {
+    char arg[100];
+    int char_elapsed = 0;
+    double val;
     const char* start_pos = *ch;
     int* quotes = malloc(sizeof(*quotes) * 10);
     int idx = 0;
@@ -175,15 +178,10 @@ create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs, int udf_s
             (*ch)++;
             quotes[idx++] = create_quotation(ch, heap, udfs, udf_size);
         }
-
     *ch = start_pos + 1;
 
-    char arg[100];
-    int char_elapsed = 0;
-    int hp = heap -> hp;
     idx = 0;
-    double val;
-
+    int hp = heap -> hp;
     while(**ch != ']')
     {
         switch(**ch) {
@@ -263,7 +261,7 @@ parseInput(double* call, const char* sp, heap_struct* heap, udf_struct* udfs) {
                 add_string(heap -> arr, &heap -> hp, &heap -> heap_size, &(sp), word_len);
                 break;
 
-            default:
+            default :;
 
                 if(is_char_num(*sp)) {
                     sscanf(sp, "%lg%n", &val, &char_elapsed);

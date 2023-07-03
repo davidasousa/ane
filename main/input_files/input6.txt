@@ -1,0 +1,4 @@
+: sq dup * ;
+: halfsq 0.5 * sq ;
+3 halfsq
+q

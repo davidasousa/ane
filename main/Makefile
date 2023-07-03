@@ -27,10 +27,13 @@ test: ane.o test.o nanbox.o parseInput.o execStack.o prebuilt.o ## Building & Li
 check: test
 	./test
 
+time: test
+	time ./test
+
 valcheck: test
 	valgrind --track-origins=yes --leak-check=full -s ./test
 
 clean: 
 	rm -f test.o ane.o test nanbox.o parseInput.o execStack.o prebuilt.o
 
-PHONY: clean valcheck check
+PHONY: clean valcheck check time

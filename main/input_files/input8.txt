@@ -1,0 +1,3 @@
+: nines dup 9 * ;
+5 nines
+q

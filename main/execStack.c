@@ -55,7 +55,7 @@ parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
 }
 
 static void
-run_I(double* stack, double* call, int* sp, heap_struct* heap, int* stack_size) {
+run_I(double* stack, int* sp, heap_struct* heap, int* stack_size) {
 
     int heap_pos = get_op(pop(stack, sp));
 
@@ -63,6 +63,71 @@ run_I(double* stack, double* call, int* sp, heap_struct* heap, int* stack_size) 
         parse_double(stack, *curr, sp, heap);
 
 }
+
+static void
+run_bi(double* stack, int* sp, heap_struct* heap, int* stack_size) {
+
+    int heap_pos_arr[] = {get_op(pop(stack, sp)), get_op(pop(stack,sp))};
+
+    double results[100];
+    int results_idx = 0;
+
+    int og_sp = *sp;
+    int first_push_pos = INT_MAX;
+    int l = INT_MAX;
+
+    double* copy = malloc(sizeof(*copy) * (*stack_size));
+    memcpy(copy, stack, sizeof(*copy) * (*stack_size));
+
+    for(double* curr = &heap -> arr[heap_pos_arr[1]]; *curr != DELIMITER; curr++) {
+        parse_double(stack, *curr, sp, heap);
+        if(first_push_pos > *sp)
+            first_push_pos = *sp;
+    }
+
+    if(l > first_push_pos)
+        l = first_push_pos;
+
+    int parse_len = *sp - first_push_pos + 1;
+
+    memcpy(&results[results_idx], &stack[first_push_pos], sizeof(*stack) * parse_len);
+    results_idx += parse_len;
+
+    *sp = og_sp;
+    memcpy(stack, copy, sizeof(*stack) * (*stack_size));
+    first_push_pos = INT_MAX;
+
+    for(double* curr = &heap -> arr[heap_pos_arr[0]]; *curr != DELIMITER; curr++) {
+        parse_double(stack, *curr, sp, heap);
+        if(first_push_pos > *sp)
+            first_push_pos = *sp;
+    }
+    if(l > first_push_pos)
+        l = first_push_pos;
+
+    parse_len = *sp - first_push_pos + 1;
+    memcpy(&results[results_idx], &stack[first_push_pos], sizeof(*stack) * parse_len);
+    results_idx += parse_len;
+
+    *sp = og_sp;
+    memcpy(stack, copy, sizeof(*stack) * (*stack_size));
+    
+    *sp += results_idx;
+    memcpy(&stack[l], results, sizeof(*stack) * results_idx);
+
+    free(copy);
+    return;
+
+}
+
+void
+run_comb(double* stack, int* sp, heap_struct* heap, int* stack_size, int arg) {
+    void (*combs[2]) (double* stack, int* sp, heap_struct* heap, int* stack_size);
+    combs[0] = run_I; combs[1] = run_bi;
+    combs[arg] (stack, &(*sp), heap, &(*stack_size));
+    return;
+}
+
 
 int 
 execStack(double** stack, double* call, int call_size, int* sp, int* stack_size, heap_struct* heap) {
@@ -75,14 +140,10 @@ execStack(double** stack, double* call, int call_size, int* sp, int* stack_size,
             *stack = realloc(*stack, sizeof(**stack) * (*stack_size));
         }
 
-        if(get_tag(call[call_idx]) == COMBINATOR) {
-           run_I(*stack, call, &(*sp), heap, stack_size);
-
-
-            continue;
-        }
-
-        parse_double(*stack, call[call_idx], sp, heap);
+        if(get_tag(call[call_idx]) == COMBINATOR)
+           run_comb(*stack, sp, heap, stack_size, get_op(call[call_idx]));
+        else
+            parse_double(*stack, call[call_idx], sp, heap);
 
     }
 

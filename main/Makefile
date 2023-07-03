@@ -36,4 +36,7 @@ valcheck: test
 clean: 
 	rm -f test.o ane.o test nanbox.o parseInput.o execStack.o prebuilt.o
 
-PHONY: clean valcheck check time
+add: 
+	git add Makefile ane.h ane.c parseInput.c execStack.c prebuilt.c input_files nanbox.c
+
+PHONY: clean valcheck check time add

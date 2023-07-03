@@ -7,4 +7,9 @@ clear
 4 [ 4 + ] [ 5 ] bi
 clear
 4 [ 4 ] [ 5 ] bi
+clear
+10 [ 5 - [ dup * ] ] I I
+clear
+10 [ 4 + ] [ 5 - [ dup * ] ] bi I 3 *
++
 q

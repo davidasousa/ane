@@ -69,51 +69,39 @@ run_bi(double* stack, int* sp, heap_struct* heap, int* stack_size) {
 
     int heap_pos_arr[] = {get_op(pop(stack, sp)), get_op(pop(stack,sp))};
 
-    double results[100];
+    double results[100]; 
     int results_idx = 0;
 
     int og_sp = *sp;
-    int first_push_pos = INT_MAX;
-    int l = INT_MAX;
+    int leftest = INT_MAX;
 
     double* copy = malloc(sizeof(*copy) * (*stack_size));
     memcpy(copy, stack, sizeof(*copy) * (*stack_size));
 
-    for(double* curr = &heap -> arr[heap_pos_arr[1]]; *curr != DELIMITER; curr++) {
-        parse_double(stack, *curr, sp, heap);
-        if(first_push_pos > *sp)
-            first_push_pos = *sp;
+    for(int i = 1; i >= 0; i--) {
+
+        int first_push_pos = INT_MAX;
+
+        for(double* curr = &heap -> arr[heap_pos_arr[i]]; *curr != DELIMITER; curr++) {
+            parse_double(stack, *curr, sp, heap);
+            if(first_push_pos > *sp)
+                first_push_pos = *sp;
+        }
+
+        if(leftest > first_push_pos)
+            leftest = first_push_pos;
+
+        int parse_len = *sp - first_push_pos + 1;
+
+        memcpy(&results[results_idx], &stack[first_push_pos], sizeof(*stack) * parse_len);
+        results_idx += parse_len;
+
+        *sp = og_sp;
+        memcpy(stack, copy, sizeof(*stack) * (*stack_size));
     }
 
-    if(l > first_push_pos)
-        l = first_push_pos;
-
-    int parse_len = *sp - first_push_pos + 1;
-
-    memcpy(&results[results_idx], &stack[first_push_pos], sizeof(*stack) * parse_len);
-    results_idx += parse_len;
-
-    *sp = og_sp;
-    memcpy(stack, copy, sizeof(*stack) * (*stack_size));
-    first_push_pos = INT_MAX;
-
-    for(double* curr = &heap -> arr[heap_pos_arr[0]]; *curr != DELIMITER; curr++) {
-        parse_double(stack, *curr, sp, heap);
-        if(first_push_pos > *sp)
-            first_push_pos = *sp;
-    }
-    if(l > first_push_pos)
-        l = first_push_pos;
-
-    parse_len = *sp - first_push_pos + 1;
-    memcpy(&results[results_idx], &stack[first_push_pos], sizeof(*stack) * parse_len);
-    results_idx += parse_len;
-
-    *sp = og_sp;
-    memcpy(stack, copy, sizeof(*stack) * (*stack_size));
-    
-    *sp += results_idx;
-    memcpy(&stack[l], results, sizeof(*stack) * results_idx);
+    *sp += leftest + results_idx - 1;
+    memcpy(&stack[leftest], results, sizeof(*stack) * results_idx);
 
     free(copy);
     return;

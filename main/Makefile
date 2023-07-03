@@ -39,4 +39,7 @@ clean:
 add: 
 	git add Makefile ane.h ane.c parseInput.c execStack.c prebuilt.c input_files nanbox.c
 
-PHONY: clean valcheck check time add
+commit: 
+	git commit -m "David"
+
+PHONY: clean valcheck check time add commit

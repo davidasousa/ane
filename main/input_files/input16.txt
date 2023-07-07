@@ -2,7 +2,7 @@
 clear
 : sq dup * ;
 : half 0.5 * ;
-5 [ sq ] [ half ] bi
+5 [ sq ] [ half ] bi +
 clear
 4 [ 4 + ] [ 5 ] bi
 clear

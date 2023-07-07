@@ -23,6 +23,10 @@ parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
 
             push(stack, &(*sp), arg);
         }
+        else if(get_tag(arg) == LIST) {
+
+            push(stack, &(*sp), arg);
+        }
         else if(get_tag(arg) == PREBUILT) {
 
             run_prebuilt(stack, &(*sp), arg);

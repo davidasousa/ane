@@ -53,13 +53,17 @@ stack_struct {
 double 
 makeBox(uint32_t op, uint32_t tag);
 
+int 
+parse_double(double* stack, double arg, int* sp, heap_struct* heap);
+
 // ENUMS
 
-enum tag_type { MATH_OPERATION = 0x7ff8, PREBUILT, USERDEF, STRING, STRING_OPERATION, READWRITE, DELIMITER, QUOTATION, COMBINATOR, LIST}; // nantag 
+enum tag_type { MATH_OPERATION = 0x7ff8, PREBUILT, USERDEF, STRING, STRING_OPERATION, READWRITE, DELIMITER, QUOTATION, COMBINATOR, LIST, LIST_OPERATION}; // nantag 
 enum prebuilt_op { DUP, SWAP, ZAP, CLEAR};
 enum math_op { PLUS, MINUS, MULTIPLY, DIVIDE };
 enum string_op { STRCAT, STRLEN };
 enum comb_op { I , BI };
+enum list_op { LIST_LENGTH, LIST_PUSH_IDX };
 
 // PREBUILT OPERATIONS
 
@@ -89,6 +93,12 @@ string_strcat(double* stack, int* sp, double* heap, int* hp);
 
 void
 run_string_op(double* stack, int* sp, double* heap, int* hp, double arg);
+
+void
+run_comb(double* stack, int* sp, heap_struct* heap, int* stack_size, int arg);
+
+void
+run_list_op(double* stack, int* sp, heap_struct* heap, double arg);
 
 // Nanbox Operations
 

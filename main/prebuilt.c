@@ -101,3 +101,96 @@ run_string_op(double* stack, int* sp, double* heap, int* hp, double arg) { // th
     return;
 }
 
+static void
+run_I(double* stack, int* sp, heap_struct* heap, int* stack_size) {
+
+    int heap_pos = get_op(pop(stack, sp));
+
+    for(double* curr = &heap -> arr[heap_pos]; *curr != DELIMITER; curr++)
+        parse_double(stack, *curr, sp, heap);
+
+}
+
+static void
+run_bi(double* stack, int* sp, heap_struct* heap, int* stack_size) {
+
+    int heap_pos_arr[] = {get_op(pop(stack, sp)), get_op(pop(stack,sp))};
+
+    double results[100]; 
+    int results_idx = 0;
+
+    int og_sp = *sp;
+    int leftest = INT_MAX;
+
+    double* copy = malloc(sizeof(*copy) * (*stack_size));
+    memcpy(copy, stack, sizeof(*copy) * (*stack_size));
+
+    for(int i = 1; i >= 0; i--) {
+
+        int first_push_pos = INT_MAX;
+
+        for(double* curr = &heap -> arr[heap_pos_arr[i]]; *curr != DELIMITER; curr++) {
+            parse_double(stack, *curr, sp, heap);
+            if(first_push_pos > *sp)
+                first_push_pos = *sp;
+        }
+
+        if(leftest > first_push_pos)
+            leftest = first_push_pos;
+
+        int parse_len = *sp - first_push_pos + 1;
+
+        memcpy(&results[results_idx], &stack[first_push_pos], sizeof(*stack) * parse_len);
+        results_idx += parse_len;
+
+        *sp = og_sp;
+        memcpy(stack, copy, sizeof(*stack) * (*stack_size));
+    }
+
+    *sp += leftest + results_idx - 1;
+    memcpy(&stack[leftest], results, sizeof(*stack) * results_idx);
+
+    free(copy);
+    return;
+
+}
+
+void
+run_comb(double* stack, int* sp, heap_struct* heap, int* stack_size, int arg) {
+    void (*combs[2]) (double* stack, int* sp, heap_struct* heap, int* stack_size);
+    combs[0] = run_I; combs[1] = run_bi;
+    combs[arg] (stack, &(*sp), heap, &(*stack_size));
+    return;
+}
+
+static void
+list_len(double* stack, int* sp, heap_struct* heap) {
+    assert(get_tag(stack[*sp]) == LIST); 
+    double list_size = heap -> arr[(get_op(pop(stack, sp)))];
+    push(stack, sp, list_size);
+    return;
+}
+
+//static void
+//map_reduce
+
+static void
+push_list_idx(double* stack, int* sp, heap_struct* heap) {
+    int idx = pop(stack, sp);
+    int list_hp = get_op(pop(stack, sp));
+    push(stack, sp, heap -> arr[list_hp + 1 + idx]);
+    return;
+}
+
+void
+run_list_op(double* stack, int* sp, heap_struct* heap, double arg) {
+    void (*list_op[2]) (double* stack, int* sp, heap_struct* heap);
+    list_op[0] = list_len; list_op[1] = push_list_idx;
+    list_op[get_op(arg)] (stack, &(*sp), heap);
+    return;
+}
+
+// things to talk about:
+// expand the number of tags in nanbox was unable to do this
+// recursive function intersection - best way to make lists and quotes nested within eachother and store them in the heap properly 
+//

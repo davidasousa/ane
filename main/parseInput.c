@@ -26,6 +26,11 @@ static const char* combs[] = {
     [BI] = "bi",
 };
 
+static const char* list_ops[] = {
+    [LIST_LENGTH] = "#",
+    [LIST_PUSH_IDX] = "#n"
+};
+
 static bool
 is_char_num(char ch) { return (ch >= '0' && ch <= '9'); }
 
@@ -36,6 +41,7 @@ process_arg(const char* input) { // Take A Given Char* Input & Associate With Th
     int math_length = sizeof(math_ops) / sizeof(math_ops[0]);
     int string_op_length = sizeof(string_ops) / sizeof(string_ops[0]);
     int comb_length = sizeof(combs) / sizeof(combs[0]);
+    int list_length = sizeof(list_ops) / sizeof(list_ops[0]);
 
     // Detecting Potentital Prebuilt
     for(int idx = 0; idx < prebuilt_length; idx++) {
@@ -59,6 +65,11 @@ process_arg(const char* input) { // Take A Given Char* Input & Associate With Th
     for(int idx = 0; idx < comb_length; idx++) {
         if(strcmp(input, combs[idx]) == 0)
             return makeBox(idx, COMBINATOR);
+    }
+
+    for(int idx = 0; idx < list_length; idx++) {
+        if(strcmp(input, list_ops[idx]) == 0)
+            return makeBox(idx, LIST_OPERATION);
     }
     return USERDEF; // Userdef because it wasnt detected by another type, this should check if it is in the valid array of udfs and then return error else 
 }
@@ -198,14 +209,14 @@ create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs) {
                       break;
             default :;
 
-                    if(is_char_num(**ch)) {                         // numerical arg
-                        sscanf(*ch, "%lg%n", &val, &char_elapsed);
-                        heap -> arr[(heap -> hp)++] = val;
-                    } else {                                        // textual arg
-                        sscanf(*ch, "%s%n", arg, &char_elapsed);
-                        *ch += char_elapsed;
-                        write_function(process_arg(arg), arg, heap, udfs);
-                    }
+                     if(is_char_num(**ch)) {                         // numerical arg
+                         sscanf(*ch, "%lg%n", &val, &char_elapsed);
+                         heap -> arr[(heap -> hp)++] = val;
+                     } else {                                        // textual arg
+                         sscanf(*ch, "%s%n", arg, &char_elapsed);
+                         *ch += char_elapsed;
+                         write_function(process_arg(arg), arg, heap, udfs);
+                     }
 
         }
         (*ch)++;
@@ -218,21 +229,39 @@ create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs) {
 
 static int
 create_list(const char** ch, heap_struct* heap, udf_struct* udfs) { // requires creation of nested quoetes first and lists - fix
-    
+
+
+    (*ch)++;
     int size_pos = heap -> hp; // also the first list element
-    heap -> arr[size_pos] = 0;
+    heap -> arr[(heap -> hp)++] = 0;
+
+    double val;
+    char arg[100];
+    int char_elapsed;
 
     while(**ch != '}') {
+
         if(**ch == ' ')  {
             (*ch)++;
             continue;
         }
-        (*ch)++;
 
+         if(is_char_num(**ch)) {                        
+             sscanf(*ch, "%lg%n", &val, &char_elapsed);
+             heap -> arr[(heap -> hp)++] = val;
+         } else {                                       
+             sscanf(*ch, "%s%n", arg, &char_elapsed);
+             *ch += char_elapsed;
+             write_function(process_arg(arg), arg, heap, udfs);
+         }
+
+        (*ch)++;
+        heap -> arr[size_pos]++;
 
     }
-    (*ch)++;
 
+    (*ch)++;
+    heap -> arr[heap -> hp++] = DELIMITER;
     return size_pos;
 }
 
@@ -241,7 +270,6 @@ parseInput(double* call, const char* sp, heap_struct* heap, udf_struct* udfs) {
     udf** functions = udfs -> functions;
 
     double val; // Place Values Used For Parsing 
-    int char_elapsed;
     char arg[100];
     int call_size = 0;
     int hp;
@@ -267,18 +295,17 @@ parseInput(double* call, const char* sp, heap_struct* heap, udf_struct* udfs) {
 
             case ':' :;
 
-                      // CHECK UDF LIM REALLOC
                       if(udfs -> udf_lim == udfs -> udf_count) {
                           udfs -> udf_lim += 10;
                           functions = realloc(functions, sizeof(*functions) * udfs -> udf_lim);
                           udfs -> functions = functions;
                       }
-                      // END UDF LIM REALLOC 
                       udfs -> functions[udfs -> udf_count] = makeudf(&sp, heap, udfs);
                       udfs -> udf_count += 1;
                       break;
 
             case '"' :;
+
                       int word_len = find_len(++sp, '\"') + 1;
                       call[call_size++] = makeBox(heap -> hp, STRING);
                       add_string(heap -> arr, &heap -> hp, &heap -> heap_size, &(sp), word_len);
@@ -286,24 +313,25 @@ parseInput(double* call, const char* sp, heap_struct* heap, udf_struct* udfs) {
 
             default :;
 
+                     int char_elapsed = 0;
+                     sscanf(sp, "%s%n", arg, &char_elapsed);
+                     sscanf(sp, "%lg%n", &val, &char_elapsed);
+
                      if(is_char_num(*sp)) {
-                         sscanf(sp, "%lg%n", &val, &char_elapsed);
-                         sp += char_elapsed;
                          call[call_size++] = val;
                      }
-                     else 
-                     {
-                         sscanf(sp, "%s%n", arg, &char_elapsed);
-                         sp += char_elapsed;
+                     else {
 
                          double parse_result = process_arg(arg);
 
                          if(parse_result != USERDEF)
                              call[call_size++] = parse_result;
                          else
-                            write_udf(call, heap -> arr, &call_size, udfs -> functions, udfs -> udf_count, arg);
+                             write_udf(call, heap -> arr, &call_size, udfs -> functions, udfs -> udf_count, arg);
+
                      }
-                     // end
+                     sp += char_elapsed;
+
         }
 
 

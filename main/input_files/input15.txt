@@ -1,9 +1,7 @@
 : quad 4 * ;
+3 [ 2 + [ quad 5 + ] ] I I
+clear
 3 [ 2 + ] [ swap 3 + ] I swap I
-zap
-3 [ 2 + [ quad ] ] I I
-zap
-3 [ 4 * [ 5 - ] ] I I
-zap
+clear
 3 [ 4 * [ 5 - [ quad ] ] ] I I I
 q

@@ -105,10 +105,16 @@ static void
 run_I(double* stack, int* sp, heap_struct* heap, int* stack_size) {
 
     int heap_pos = get_op(pop(stack, sp));
+    for(double* curr = &heap -> arr[heap_pos]; *curr != DELIMITER; curr++) {
 
-    for(double* curr = &heap -> arr[heap_pos]; *curr != DELIMITER; curr++)
-        parse_double(stack, *curr, sp, heap);
-
+        if(get_tag(*curr) == QUOTATION) {
+            parse_double(stack, *curr, sp, heap); // push the nanbox from the heap but skip the actual contents
+            while(*curr != DELIMITER)
+                curr++;
+        }
+        else
+            parse_double(stack, *curr, sp, heap);
+    }
 }
 
 static void

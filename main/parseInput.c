@@ -178,21 +178,12 @@ makeudf(const char** input, heap_struct* heap, udf_struct* udfs) {
 
 static int
 create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs) {
+
+    (*ch)++;
     char arg[100];
     int char_elapsed = 0;
     double val;
-    const char* start_pos = *ch;
-    int* quotes = malloc(sizeof(*quotes) * 10);
-    int idx = 0;
 
-    for( ; **ch != ']'; (*ch)++) // Recursive Case - QUOTATIONS ARE MADE OUTWARD -> Bigger Quotations Later
-        if(**ch == '[') {
-            (*ch)++;
-            quotes[idx++] = create_quotation(ch, heap, udfs);
-        }
-    *ch = start_pos + 1;
-
-    idx = 0;
     int hp = heap -> hp;
     while(**ch != ']') {
 
@@ -204,8 +195,9 @@ create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs) {
         switch(**ch) {
 
             case '[' :;
-                      heap -> arr[(heap -> hp)++] = makeBox(quotes[idx++], QUOTATION);
-                      skip_over(ch, ']');
+                      heap -> arr[(heap -> hp)] = makeBox(heap -> hp + 1, QUOTATION);
+                      heap -> hp += 1;
+                      create_quotation(&(*ch), heap, udfs);
                       break;
             default :;
 
@@ -223,7 +215,6 @@ create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs) {
     }
 
     heap -> arr[heap -> hp++] = DELIMITER;
-    free(quotes);
     return hp;
 }
 

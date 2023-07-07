@@ -19,14 +19,6 @@ parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
             run_math(stack, &(*sp), arg); // watch how/when error code is being returned
 
         } 
-        else if(get_tag(arg) == QUOTATION) {
-
-            push(stack, &(*sp), arg);
-        }
-        else if(get_tag(arg) == LIST) {
-
-            push(stack, &(*sp), arg);
-        }
         else if(get_tag(arg) == LIST_OPERATION) {
 
             run_list_op(stack, &(*sp), heap, arg);
@@ -35,11 +27,6 @@ parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
         else if(get_tag(arg) == PREBUILT) {
 
             run_prebuilt(stack, &(*sp), arg);
-
-        }
-        else if(get_tag(arg) == STRING) {
-
-            push(stack, &(*sp), arg);
 
         }
         else if(get_tag(arg) == STRING_OPERATION) {
@@ -54,13 +41,12 @@ parse_double(double* stack, double arg, int* sp, heap_struct* heap) {
                 parse_double(stack, *quote, sp, heap);
 
         }
-        else if(is_num(arg)) {
+       else {
 
             push(stack, &(*sp), arg);
             
-        } else 
-            return 0;
-        return 1;
+        };
+        return 0;
 }
 
 int 

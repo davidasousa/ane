@@ -237,14 +237,30 @@ create_list(const char** ch, heap_struct* heap, udf_struct* udfs) { // requires 
             continue;
         }
 
-         if(is_char_num(**ch)) {                        
-             sscanf(*ch, "%lg%n", &val, &char_elapsed);
-             heap -> arr[(heap -> hp)++] = val;
-         } else {                                       
-             sscanf(*ch, "%s%n", arg, &char_elapsed);
-             *ch += char_elapsed;
-             write_function(process_arg(arg), arg, heap, udfs);
-         }
+        switch(**ch) {
+
+            case '[':;
+
+
+                     *ch += 1;
+                     heap -> arr[(heap -> hp)] = makeBox((heap -> hp) + 1, QUOTATION);
+                     heap -> hp++;
+                     create_quotation(ch, heap, udfs);
+                     break;
+
+            default:;
+
+                    if(is_char_num(**ch)) {                        
+                        sscanf(*ch, "%lg%n", &val, &char_elapsed);
+                        heap -> arr[(heap -> hp)++] = val;
+                    } else {                                       
+                        sscanf(*ch, "%s%n", arg, &char_elapsed);
+                        *ch += char_elapsed;
+                        write_function(process_arg(arg), arg, heap, udfs);
+                    }
+
+        }
+
 
         (*ch)++;
         heap -> arr[size_pos]++;

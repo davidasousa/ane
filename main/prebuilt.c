@@ -146,6 +146,9 @@ run_bi(double* stack, int* sp, heap_struct* heap, int* stack_size) {
 
         int parse_len = *sp - first_push_pos + 1;
 
+        if(first_push_pos == INT_MAX) // skipping empty quotes
+            continue;
+
         memcpy(&results[results_idx], &stack[first_push_pos], sizeof(*stack) * parse_len);
         results_idx += parse_len;
 
@@ -153,8 +156,10 @@ run_bi(double* stack, int* sp, heap_struct* heap, int* stack_size) {
         memcpy(stack, copy, sizeof(*stack) * (*stack_size));
     }
 
-    *sp += leftest + results_idx - 1;
-    memcpy(&stack[leftest], results, sizeof(*stack) * results_idx);
+    if(results_idx > 0) {
+        *sp += leftest + results_idx - 1;
+        memcpy(&stack[leftest], results, sizeof(*stack) * results_idx);
+    }
 
     free(copy);
     return;
@@ -184,7 +189,19 @@ static void
 push_list_idx(double* stack, int* sp, heap_struct* heap) {
     int idx = pop(stack, sp);
     int list_hp = get_op(pop(stack, sp));
-    push(stack, sp, heap -> arr[list_hp + 1 + idx]);
+
+    double* val = &heap -> arr[list_hp + 1];
+
+    for(int i = 0; i < idx; i++) { // skiping over the quote instructions present after the nanbox for the quote in the heap - reference good notes picture
+        if(get_tag(*val) == QUOTATION) {
+            while(*val != DELIMITER) {
+                val++;
+            }
+        }
+        val++;
+    }
+
+    push(stack, sp, *val);
     return;
 }
 

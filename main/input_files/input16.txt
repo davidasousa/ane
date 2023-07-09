@@ -12,4 +12,6 @@ clear
 clear
 10 [ 4 + ] [ 5 - [ dup * ] ] bi I 3 *
 +
+clear
+3 [ [ 5 + ] [ dup ] ] I bi
 q

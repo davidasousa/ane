@@ -119,6 +119,9 @@ ane(FILE* stream, int* valid_pass, FILE* output) {
 
         for(int idx = 0; idx <= stack -> sp; idx++) {
 
+            if(get_tag(stack -> stack[idx] == LIST)) // hard coded because the list was printing as a crazy number when it shouldnt be printing at all
+                continue;
+
             if(is_num(stack -> stack[idx]) && call_size > 0)
                 fprintf(output, "%lg ", stack -> stack[idx]);
 

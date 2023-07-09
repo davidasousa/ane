@@ -1,6 +1,10 @@
 { 4 5 "David" 5 } #
 clear
-{ 5 8 } 1 #n
+4 { 5 8 } 1 #n +
 clear
 { 6 3 } [ 0 #n ] [ # ] bi /
+clear
+5 { 4 [ 5 + ] } 1 #n I
+clear
+5 { [ 5 + ] 4 } 0 #n I
 q

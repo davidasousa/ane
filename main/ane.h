@@ -63,7 +63,7 @@ enum prebuilt_op { DUP, SWAP, ZAP, CLEAR};
 enum math_op { PLUS, MINUS, MULTIPLY, DIVIDE };
 enum string_op { STRCAT, STRLEN };
 enum comb_op { I , BI };
-enum list_op { LIST_LENGTH, LIST_PUSH_IDX };
+enum list_op { LIST_LENGTH, LIST_PUSH_IDX, CAT, SUM_LIST, PROD_LIST };
 
 // PREBUILT OPERATIONS
 

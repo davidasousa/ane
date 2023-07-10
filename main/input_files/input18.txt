@@ -7,4 +7,14 @@ clear
 5 { 4 [ 5 + ] } 1 #n I
 clear
 5 { [ 5 + ] 4 } 0 #n I
+clear
+{ 4 { 4 5 } 2.65 } 1 #n #
+clear
+5 { [ dup * ] 2 3 "david" "sousa" } 0 #n I
+clear
+{ 4 { 4 5 } 2.65 } [ 0 #n ] [ 2 #n ] bi /
+clear
+{ { 3 4 5 { 1 9 } } 4 } 0 #n 3 #n 1 #n dup *
+clear
+{ 1 2 3 } { 4 5 } cat /+
 q

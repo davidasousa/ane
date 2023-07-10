@@ -28,7 +28,9 @@ static const char* combs[] = {
 
 static const char* list_ops[] = {
     [LIST_LENGTH] = "#",
-    [LIST_PUSH_IDX] = "#n"
+    [LIST_PUSH_IDX] = "#n",
+    [CAT] = "cat",
+    [SUM_LIST] = "/+"
 };
 
 static bool
@@ -221,7 +223,6 @@ create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs) {
 static int
 create_list(const char** ch, heap_struct* heap, udf_struct* udfs) { // requires creation of nested quoetes first and lists - fix
 
-
     (*ch)++;
     int size_pos = heap -> hp; // also the first list element
     heap -> arr[(heap -> hp)++] = 0;
@@ -241,12 +242,18 @@ create_list(const char** ch, heap_struct* heap, udf_struct* udfs) { // requires 
 
             case '[':;
 
-
                      *ch += 1;
                      heap -> arr[(heap -> hp)] = makeBox((heap -> hp) + 1, QUOTATION);
                      heap -> hp++;
                      create_quotation(ch, heap, udfs);
                      break;
+
+            case '{' :;
+
+                      heap -> arr[(heap -> hp)] = makeBox(heap -> hp + 1, LIST);
+                      (heap -> hp)++;
+                      create_list(&(*ch), heap, udfs);
+                      break;
 
             default:;
 

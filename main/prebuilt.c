@@ -184,6 +184,8 @@ list_len(double* stack, int* sp, heap_struct* heap) {
 
 //static void
 //map_reduce
+//
+//next ----- list in list
 
 static void
 push_list_idx(double* stack, int* sp, heap_struct* heap) {
@@ -193,7 +195,7 @@ push_list_idx(double* stack, int* sp, heap_struct* heap) {
     double* val = &heap -> arr[list_hp + 1];
 
     for(int i = 0; i < idx; i++) { // skiping over the quote instructions present after the nanbox for the quote in the heap - reference good notes picture
-        if(get_tag(*val) == QUOTATION) {
+        if(get_tag(*val) == QUOTATION || get_tag(*val) == LIST) {
             while(*val != DELIMITER) {
                 val++;
             }
@@ -205,10 +207,47 @@ push_list_idx(double* stack, int* sp, heap_struct* heap) {
     return;
 }
 
+static void
+list_cat(double* stack, int* sp, heap_struct* heap) {
+    assert(get_tag(stack[*sp]) == LIST);
+    assert(get_tag(stack[*sp - 1]) == LIST);
+
+    int cdr_hp = get_op(pop(stack, sp));
+    int con_hp = get_op(pop(stack, sp));
+
+    push(stack, sp, makeBox(heap -> hp, LIST));
+
+    heap -> arr[(heap -> hp)++] = heap -> arr[con_hp] + heap -> arr[cdr_hp];
+    
+    memcpy(&heap -> arr[heap -> hp], &heap -> arr[con_hp + 1], sizeof(double) * (heap -> arr[con_hp]));
+
+    (heap -> hp) += heap -> arr[con_hp];
+
+    memcpy(&heap -> arr[heap -> hp], &heap -> arr[cdr_hp + 1], sizeof(double) * (heap -> arr[cdr_hp]));
+
+    (heap -> hp) += heap -> arr[cdr_hp];
+
+    heap -> arr[(heap -> hp++)] = DELIMITER;
+
+    return;
+}
+
+static void
+list_sum(double* stack, int* sp, heap_struct* heap) {
+    int list_hp = get_op(pop(stack, sp));
+    int sum = 0;
+
+    for(double* curr = &heap -> arr[list_hp + 1]; *curr != DELIMITER; curr++)
+        sum += *curr;
+
+    push(stack, sp, (double)sum);
+    return;
+}
+
 void
 run_list_op(double* stack, int* sp, heap_struct* heap, double arg) {
-    void (*list_op[2]) (double* stack, int* sp, heap_struct* heap);
-    list_op[0] = list_len; list_op[1] = push_list_idx;
+    void (*list_op[4]) (double* stack, int* sp, heap_struct* heap);
+    list_op[0] = list_len; list_op[1] = push_list_idx; list_op[2] = list_cat; list_op[3] = list_sum;
     list_op[get_op(arg)] (stack, &(*sp), heap);
     return;
 }

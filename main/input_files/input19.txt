@@ -1,0 +1,12 @@
+{ 1 } [ # ] [ 0 #n ] bi
+clear
+{ 1 2 } [ # ] [ 1 #n ] bi
+clear
+{ 1 2 + } [ # ] [ 0 #n ] bi
+clear
+1 { 2 + } [ # ] [ 0 #n ] bi
+clear
+1 2 { + } [ # ] [ 0 #n ] bi
+clear
+1 1 2 { + } [ # ] [ 0 #n ] bi
+q

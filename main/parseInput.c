@@ -262,12 +262,11 @@ create_list(const char** ch, heap_struct* heap, udf_struct* udfs) { // requires 
                         heap -> arr[(heap -> hp)++] = val;
                     } else {                                       
                         sscanf(*ch, "%s%n", arg, &char_elapsed);
-                        *ch += char_elapsed;
                         write_function(process_arg(arg), arg, heap, udfs);
                     }
+                    *ch += char_elapsed;
 
         }
-
 
         (*ch)++;
         heap -> arr[size_pos]++;

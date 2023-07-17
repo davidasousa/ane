@@ -1,3 +1,6 @@
+: sq dup * ;
+: double 2 * ;
+: seq 1 2 3 4 ;
 { 4 5 "David" 5 } #
 clear
 4 { 5 8 } 1 #n +
@@ -17,4 +20,12 @@ clear
 { { 3 4 5 { 1 9 } } 4 } 0 #n 3 #n 1 #n dup *
 clear
 { 1 2 3 } { 4 5 } cat /+
+clear
+{ 10 sq 20 sq } 0 #n
+clear
+10 { [ sq ] I } - capture
+clear
+10 { [ sq ] [ double ] bi }
+clear
+{ seq { seq } }
 q

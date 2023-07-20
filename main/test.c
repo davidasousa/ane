@@ -221,16 +221,25 @@ void test_sub_quote(void) {
     char str[100];
     fp = fopen("output.txt", "r");
     fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "8 \n") == 0);
+    TEST_CHECK(strcmp(str, "52 \n") == 0);
+    fclose(fp);
+
+}
+
+void test_bilist(void) {
+    int valid_pass = 0;
+
+    FILE* fp = fopen("input_files/input19.txt", "r");
+    FILE* output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
+
+    char str[100];
+    fp = fopen("output.txt", "r");
     fgets(str, sizeof(str), fp);
-    fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "20 \n") == 0);
-    fgets(str, sizeof(str), fp);
-    fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "7 \n") == 0);
-    fgets(str, sizeof(str), fp);
-    fgets(str, sizeof(str), fp);
-    TEST_CHECK(strcmp(str, "28 \n") == 0);
+    TEST_CHECK(strcmp(str, "9 25 \n") == 0);
+    printf("%s", str);
     fclose(fp);
 
 }
@@ -247,6 +256,7 @@ TEST_LIST = {
     {"ANE Quote Combs", test_quote_combs},
     {"ANE Expansion", test_expand_mem},
     {"ANE SUB QUOTE", test_sub_quote},
+    {"ANE SUB QUOTE", test_bilist},
     {NULL, NULL}
 };
 

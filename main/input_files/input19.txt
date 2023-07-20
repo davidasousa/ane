@@ -1,12 +1,4 @@
-{ 1 } [ # ] [ 0 #n ] bi
+5 { 4 + { 4 + } } 0 #n 0 #n
 clear
-{ 1 2 } [ # ] [ 1 #n ] bi
-clear
-{ 1 2 + } [ # ] [ 0 #n ] bi
-clear
-1 { 2 + } [ # ] [ 0 #n ] bi
-clear
-1 2 { + } [ # ] [ 0 #n ] bi
-clear
-1 1 2 { + } [ # ] [ 0 #n ] bi
+5 [ 4 + ] [ dup * ] { bi } [ 0 #n ] [ 1 #n ] bi
 q

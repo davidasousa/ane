@@ -37,7 +37,7 @@ clean:
 	rm -f test.o ane.o test nanbox.o parseInput.o execStack.o prebuilt.o
 
 add: 
-	git add Makefile ane.h ane.c parseInput.c execStack.c prebuilt.c input_files nanbox.c
+	git add Makefile ane.h ane.c parseInput.c execStack.c prebuilt.c input_files nanbox.c test.c
 
 commit: 
 	git commit -m "David"

@@ -60,7 +60,9 @@ capture_list(double* stack, int* sp, heap_struct* heap, int og_hp, int* stack_si
 
     for(double* curr = &heap -> arr[og_hp + 1]; *curr != DELIMITER; curr++) {
 
-        if(get_tag(*curr) == COMBINATOR)
+        if(get_tag(*curr) == LIST)
+            capture_list(cstack, &spcpy, heap, get_op(*curr), stack_size); 
+        else if(get_tag(*curr) == COMBINATOR)
             run_comb(cstack, &spcpy, heap, stack_size, get_op(*curr));
         else
             parse_double(cstack, *curr, &spcpy, heap);

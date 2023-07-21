@@ -238,7 +238,19 @@ void test_bilist(void) {
     char str[100];
     fp = fopen("output.txt", "r");
     fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "13 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "25 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "4 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp); 
     TEST_CHECK(strcmp(str, "9 25 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "7 133 \n") == 0);
     printf("%s", str);
     fclose(fp);
 

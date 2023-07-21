@@ -1,4 +1,12 @@
+: sq dup * ;
 5 { 4 + { 4 + } } 0 #n 0 #n
 clear
+5 [ dup * ] { I } 0 #n
+clear
+{ 3 4 } 1 #n
+clear
 5 [ 4 + ] [ dup * ] { bi } [ 0 #n ] [ 1 #n ] bi
+clear
+12 3 [ 4 + ] [ 8 + sq + ] { bi } [ 0 #n ] [ 1 #n ] bi
+clear
 q

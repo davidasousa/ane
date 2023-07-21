@@ -94,7 +94,7 @@ string_strcat(double* stack, int* sp, double* heap, int* hp);
 void
 run_string_op(double* stack, int* sp, double* heap, int* hp, double arg);
 
-void
+int
 run_comb(double* stack, int* sp, heap_struct* heap, int* stack_size, int arg);
 
 void

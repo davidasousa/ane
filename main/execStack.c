@@ -56,21 +56,27 @@ capture_list(double* stack, int* sp, heap_struct* heap, int og_hp, int* stack_si
     memcpy(cstack, stack, sizeof(*cstack) * (*stack_size));
 
     int spcpy = *sp;
-    int minsp = *sp + 1;
+    int minsp = *sp;
 
     for(double* curr = &heap -> arr[og_hp + 1]; *curr != DELIMITER; curr++) {
 
         if(get_tag(*curr) == LIST)
             capture_list(cstack, &spcpy, heap, get_op(*curr), stack_size); 
-        else if(get_tag(*curr) == COMBINATOR)
-            run_comb(cstack, &spcpy, heap, stack_size, get_op(*curr));
+        else if(get_tag(*curr) == COMBINATOR) {
+            int comb_minsp = run_comb(cstack, &spcpy, heap, stack_size, get_op(*curr));
+            if(comb_minsp < minsp)
+                minsp = comb_minsp;
+        }
         else
             parse_double(cstack, *curr, &spcpy, heap);
         
         if(spcpy < minsp)
             minsp = spcpy;
 
+
     }
+    if(minsp == -1)
+        minsp++;
 
     int len = spcpy - minsp + 1;
 

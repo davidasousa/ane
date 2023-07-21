@@ -101,7 +101,7 @@ run_string_op(double* stack, int* sp, double* heap, int* hp, double arg) { // th
     return;
 }
 
-static void
+static int
 run_I(double* stack, int* sp, heap_struct* heap, int* stack_size) {
 
     int heap_pos = get_op(pop(stack, sp));
@@ -115,9 +115,10 @@ run_I(double* stack, int* sp, heap_struct* heap, int* stack_size) {
         else
             parse_double(stack, *curr, sp, heap);
     }
+    return INT_MAX;
 }
 
-static void
+static int
 run_bi(double* stack, int* sp, heap_struct* heap, int* stack_size) {
 
     int heap_pos_arr[] = {get_op(pop(stack, sp)), get_op(pop(stack,sp))};
@@ -162,16 +163,15 @@ run_bi(double* stack, int* sp, heap_struct* heap, int* stack_size) {
     }
 
     free(copy);
-    return;
-
+    return leftest;
 }
 
-void
+int
 run_comb(double* stack, int* sp, heap_struct* heap, int* stack_size, int arg) {
-    void (*combs[2]) (double* stack, int* sp, heap_struct* heap, int* stack_size);
+    int (*combs[2]) (double* stack, int* sp, heap_struct* heap, int* stack_size);
     combs[0] = run_I; combs[1] = run_bi;
-    combs[arg] (stack, &(*sp), heap, &(*stack_size));
-    return;
+    int min = combs[arg] (stack, &(*sp), heap, &(*stack_size));
+    return min;
 }
 
 static void

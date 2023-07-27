@@ -9,4 +9,5 @@ clear
 clear
 12 3 [ 4 + ] [ 8 + sq + ] { bi } [ 0 #n ] [ 1 #n ] bi
 clear
+{ [ 4 + ] [ 4 - 4 + ] [ 49 + ] } #
 q

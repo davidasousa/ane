@@ -251,9 +251,46 @@ void test_bilist(void) {
     fgets(str, sizeof(str), fp);
     fgets(str, sizeof(str), fp);
     TEST_CHECK(strcmp(str, "7 133 \n") == 0);
-    printf("%s", str);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "3 \n") == 0);
+    fclose(fp);
+}
+
+void test_map(void) {
+    int valid_pass = 0;
+
+    FILE* fp = fopen("input_files/input20.txt", "r");
+    FILE* output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
+
+    char str[100];
+    fp = fopen("output.txt", "r");
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "120 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "16 7 \n") == 0);
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "4 16 \n") == 0); 
     fclose(fp);
 
+    fp = fopen("input_files/input21.txt", "r");
+    output = fopen("output.txt", "w");
+    ane(fp, &valid_pass, output);
+    fclose(fp);
+    fclose(output);    
+
+    fp = fopen("output.txt", "r");
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "9 \n") == 0); 
+    fgets(str, sizeof(str), fp);
+    fgets(str, sizeof(str), fp);
+    TEST_CHECK(strcmp(str, "2 \n") == 0); 
+    fclose(fp);
 }
 
 TEST_LIST = {
@@ -268,7 +305,8 @@ TEST_LIST = {
     {"ANE Quote Combs", test_quote_combs},
     {"ANE Expansion", test_expand_mem},
     {"ANE SUB QUOTE", test_sub_quote},
-    {"ANE SUB QUOTE", test_bilist},
+    {"ANE Bi Comb", test_bilist},
+    {"ANE Map", test_map},
     {NULL, NULL}
 };
 

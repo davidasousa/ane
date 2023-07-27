@@ -56,9 +56,16 @@ capture_list(double* stack, int* sp, heap_struct* heap, int og_hp, int* stack_si
     memcpy(cstack, stack, sizeof(*cstack) * (*stack_size));
 
     int spcpy = *sp;
-    int minsp = *sp;
+    int minsp = *sp + 1;
 
     for(double* curr = &heap -> arr[og_hp + 1]; *curr != DELIMITER; curr++) {
+
+        if(get_tag(*curr) == QUOTATION) {
+            parse_double(cstack, *curr, &spcpy, heap);
+            while(*curr != DELIMITER)
+                curr++;
+            continue;
+        }
 
         if(get_tag(*curr) == LIST)
             capture_list(cstack, &spcpy, heap, get_op(*curr), stack_size); 
@@ -72,8 +79,6 @@ capture_list(double* stack, int* sp, heap_struct* heap, int og_hp, int* stack_si
         
         if(spcpy < minsp)
             minsp = spcpy;
-
-
     }
     if(minsp == -1)
         minsp++;

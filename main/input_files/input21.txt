@@ -1,0 +1,4 @@
+1 [ 4 5 + ] [ 5 5 + ] ifte
+clear
+0 [ 5 dup * ] [ 4 8 swap / ] ifte
+q

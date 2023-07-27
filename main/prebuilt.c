@@ -164,6 +164,7 @@ run_bi(double* stack, int* sp, heap_struct* heap, int* stack_size) {
 
     free(copy);
     return leftest;
+
 }
 
 int
@@ -244,11 +245,127 @@ list_sum(double* stack, int* sp, heap_struct* heap) {
     return;
 }
 
+static void
+list_prod(double* stack, int* sp, heap_struct* heap) {
+    int list_hp = get_op(pop(stack, sp));
+    int sum = 1;
+
+    for(double* curr = &heap -> arr[list_hp + 1]; *curr != DELIMITER; curr++)
+        sum *= *curr;
+
+    push(stack, sp, (double)sum);
+    return;
+}
+
+static void
+cleave(double* stack, int* sp, heap_struct* heap) {
+    int list_hp = get_op(pop(stack, sp));
+    double* list_head = &heap -> arr[list_hp];
+
+    double* stack_cpy = malloc(sizeof(*stack_cpy) * 1000);
+    memcpy(stack_cpy, stack, sizeof(*stack_cpy) * 1000);
+
+    double results[1000];
+    int ridx = 0;
+
+    int og_sp = *sp;
+    int leftest = INT_MAX;
+
+    for(double* quote = list_head + 1; *quote != DELIMITER; quote++) {
+        int quote_hp = get_op(*quote);
+
+        int fpp = INT_MAX;
+
+        for(double* curr = &heap -> arr[quote_hp]; *curr != DELIMITER; curr++) {
+            parse_double(stack, *curr, sp, heap);
+            if(fpp > *sp)
+                fpp = *sp;
+        }
+
+        if(leftest > fpp)
+            leftest = fpp;
+
+        int parse_len = *sp - fpp + 1;
+
+        if(fpp == INT_MAX)
+            continue;
+
+        memcpy(&results[ridx], &stack[fpp], sizeof(*stack) * parse_len);
+        ridx += parse_len;
+
+        *sp = og_sp;
+        memcpy(stack, stack_cpy, sizeof(*stack) * 1000);
+    }
+
+    if(ridx > 0) { // leave on stack
+        /* leave on stack else non comment is leave as list
+        *sp += leftest + ridx - 1;
+        memcpy(&stack[leftest], results, sizeof(*stack) * ridx);
+        */ 
+
+        int new_list_head = (heap -> hp)++;
+        heap -> arr[new_list_head] = leftest + ridx - 1;
+        memcpy(&heap -> arr[heap -> hp], results, sizeof(*stack) * ridx);
+        heap -> hp += leftest + ridx - 1;
+
+        while(*sp != leftest - 1)
+            pop(stack, sp);
+
+        push(stack, sp, makeBox(new_list_head, LIST));
+    }
+
+    free(stack_cpy);
+
+    return;
+}
+
+static void
+map(double* stack, int* sp, heap_struct* heap) {
+    int quote_hp = get_op(pop(stack, sp));
+    int list_hp = get_op(pop(stack, sp));
+
+    int list_count = heap -> arr[list_hp];
+
+    int new_list_hp = (heap -> hp)++;
+    push(stack, sp, makeBox(new_list_hp, LIST));
+    
+    for(int idx = 0; idx < list_count; idx++) {
+        double temp[1000];
+        int tp = 0;
+        memcpy(temp, &heap -> arr[list_hp + idx + 1], sizeof(double));
+
+        for(double* curr = &heap -> arr[quote_hp]; *curr != DELIMITER; curr++)
+            parse_double(temp, *curr, &tp, heap);
+
+        memcpy(&heap -> arr[(heap -> hp++)], &temp[0], sizeof(double));
+    }
+    heap -> arr[(heap -> hp)++] = DELIMITER;
+
+    return;
+}
+
+static void
+ifte(double* stack, int* sp, heap_struct* heap) {
+    double con = pop(stack, sp);
+    double cdr = pop(stack, sp);
+    double cond = pop(stack, sp);
+
+    if(cond) {
+        for(double* curr = &heap -> arr[get_op(cdr)]; *curr != DELIMITER; curr++) 
+            parse_double(stack, *curr, sp, heap); 
+    } else {
+        for(double* curr = &heap -> arr[get_op(con)]; *curr != DELIMITER; curr++) 
+            parse_double(stack, *curr, sp, heap);  
+    }
+
+    return;
+}
+
 void
 run_list_op(double* stack, int* sp, heap_struct* heap, double arg) {
-    void (*list_op[4]) (double* stack, int* sp, heap_struct* heap);
-    list_op[0] = list_len; list_op[1] = push_list_idx; list_op[2] = list_cat; list_op[3] = list_sum;
-    list_op[get_op(arg)] (stack, &(*sp), heap);
+    void (*list_op[8]) (double* stack, int* sp, heap_struct* heap);
+    list_op[0] = list_len; list_op[1] = push_list_idx; list_op[2] = list_cat; list_op[3] = list_sum; list_op[4] = list_prod; list_op[5] = cleave; list_op[6] = map; list_op[7] = ifte;
+    list_op[get_op(arg)] (stack, &(*sp), heap); 
     return;
 }
 

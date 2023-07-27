@@ -30,7 +30,11 @@ static const char* list_ops[] = {
     [LIST_LENGTH] = "#",
     [LIST_PUSH_IDX] = "#n",
     [CAT] = "cat",
-    [SUM_LIST] = "/+"
+    [SUM_LIST] = "/+",
+    [PROD_LIST] = "/*",
+    [CLEAVE] = "cleave",
+    [MAP] = "map",
+    [IFTE] = "ifte"
 };
 
 static bool

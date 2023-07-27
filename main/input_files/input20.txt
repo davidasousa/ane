@@ -1,0 +1,8 @@
+: sq dup * ;
+{ 2 3 4 5 } /*
+clear
+4 { [ dup * ] [ 5 + ] [ 3 + ] } cleave [ 0 #n ] [ 2 #n ] bi
+clear
+{ 1 2 3 4 } [ sq ] map [ 1 #n ] [ 3 #n ] bi
+clear
+q

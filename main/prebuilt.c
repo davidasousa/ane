@@ -361,10 +361,40 @@ ifte(double* stack, int* sp, heap_struct* heap) {
     return;
 }
 
+static void
+spread(double* stack, int* sp, heap_struct* heap) {
+    int list_pos = get_op(pop(stack, sp));
+    int qcount = heap -> arr[list_pos];
+    
+    double* entries = malloc(sizeof(*entries) * qcount);
+    for(int idx = 0; idx < qcount; ++idx) {
+        entries[qcount - idx - 1] = pop(stack, sp);
+    }
+
+    double* results = malloc(sizeof(double) * 1000);
+    int ridx = 0;
+
+    for(int idx = 0; idx < qcount; ++idx) {
+        results[ridx] = entries[idx];
+        int quote_idx = get_op(heap -> arr[list_pos + 1 + idx]);
+
+        for(double* curr = &heap -> arr[quote_idx]; *curr != DELIMITER; curr++) 
+            parse_double(results, *curr, &ridx, heap);   
+        ridx++;
+    }
+
+    memcpy(&stack[*sp + 1], results, sizeof(double) * ridx);
+    *sp += ridx;
+    
+    free(results);
+    free(entries);
+    return;
+}
+
 void
 run_list_op(double* stack, int* sp, heap_struct* heap, double arg) {
-    void (*list_op[8]) (double* stack, int* sp, heap_struct* heap);
-    list_op[0] = list_len; list_op[1] = push_list_idx; list_op[2] = list_cat; list_op[3] = list_sum; list_op[4] = list_prod; list_op[5] = cleave; list_op[6] = map; list_op[7] = ifte;
+    void (*list_op[9]) (double* stack, int* sp, heap_struct* heap);
+    list_op[0] = list_len; list_op[1] = push_list_idx; list_op[2] = list_cat; list_op[3] = list_sum; list_op[4] = list_prod; list_op[5] = cleave; list_op[6] = map; list_op[7] = ifte; list_op[8] = spread;
     list_op[get_op(arg)] (stack, &(*sp), heap); 
     return;
 }

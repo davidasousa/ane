@@ -67,8 +67,11 @@ capture_list(double* stack, int* sp, heap_struct* heap, int og_hp, int* stack_si
             continue;
         }
 
-        if(get_tag(*curr) == LIST)
+        if(get_tag(*curr) == LIST) {
             capture_list(cstack, &spcpy, heap, get_op(*curr), stack_size); 
+            while(*curr != DELIMITER)
+                curr++;
+        }
         else if(get_tag(*curr) == COMBINATOR) {
             int comb_minsp = run_comb(cstack, &spcpy, heap, stack_size, get_op(*curr));
             if(comb_minsp < minsp)

@@ -34,7 +34,8 @@ static const char* list_ops[] = {
     [PROD_LIST] = "/*",
     [CLEAVE] = "cleave",
     [MAP] = "map",
-    [IFTE] = "ifte"
+    [IFTE] = "ifte",
+    [SPREAD] = "spread"
 };
 
 static bool
@@ -210,6 +211,7 @@ create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs) {
                      if(is_char_num(**ch)) {                         // numerical arg
                          sscanf(*ch, "%lg%n", &val, &char_elapsed);
                          heap -> arr[(heap -> hp)++] = val;
+                         *ch += char_elapsed;
                      } else {                                        // textual arg
                          sscanf(*ch, "%s%n", arg, &char_elapsed);
                          *ch += char_elapsed;
@@ -248,7 +250,7 @@ create_list(const char** ch, heap_struct* heap, udf_struct* udfs) { // requires 
 
                      *ch += 1;
                      heap -> arr[(heap -> hp)] = makeBox((heap -> hp) + 1, QUOTATION);
-                     heap -> hp++;
+                     (heap -> hp)++;
                      create_quotation(ch, heap, udfs);
                      break;
 

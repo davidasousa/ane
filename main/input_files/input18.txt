@@ -1,21 +1,21 @@
 : sq dup * ;
 : double 2 * ;
 : seq 1 2 3 4 ;
-{ 4 5 "David" 5 } #
+{ 4 5 4 5 } #
 clear
 4 { 5 8 } 1 #n +
 clear
 { 6 3 } [ 0 #n ] [ # ] bi /
 clear
-5 { 4 [ 5 + ] } 1 #n I
+5 { 4 [ 6 + ] } 1 #n I
 clear
-5 { [ 5 + ] 4 } 0 #n I
+5 { [ 10 + ] 4 } 0 #n I
 clear
-{ 4 { 4 5 } 2.65 } 1 #n #
+{ 4 { 4 54 4 4 5 } 2.65 } 1 #n #
 clear
-5 { [ dup * ] 2 3 "david" "sousa" } 0 #n I
+5 { [ dup * ] 2 3 } 0 #n I
 clear
-{ 4 { 4 5 } 2.65 } [ 0 #n ] [ 2 #n ] bi /
+{ 4 { 4 5 } 2 } [ # ] [ 2 #n ] bi
 clear
 { { 3 4 5 { 1 9 } } 4 } 0 #n 3 #n 1 #n dup *
 clear
@@ -23,9 +23,8 @@ clear
 clear
 { 10 sq 20 sq } 0 #n
 clear
-10 { [ sq ] I } - capture
+10 { [ sq ] I }
 clear
 10 { [ sq ] [ double ] bi }
 clear
-{ seq { seq } }
 q

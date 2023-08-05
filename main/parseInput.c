@@ -110,16 +110,19 @@ write_udf(double* dest, double* heap, int* hp, udf* functions[], int udf_size, c
 
     for(int idx = 0; idx < udf_size; idx++)
         if(strcmp(arg, functions[idx] -> name) == 0) {
-            /*
-            for(int func_idx = 0; func_idx < functions[idx] -> args; func_idx++) { 
-                dest[*hp] = heap[functions[idx] -> hp + func_idx];
-                (*hp)++;
-            }
-            */
             int func_hp = functions[idx] -> hp;
             int pos = 0;
 
             while(heap[func_hp + pos] != DELIMITER) {
+                if(get_tag(heap[func_hp + pos]) == QUOTATION) {
+
+                    dest[(*hp)++] = heap[func_hp + pos];
+                    while(heap[func_hp + pos] != DELIMITER)
+                        pos++;
+                    pos++;
+                    continue;
+                }
+
                 dest[*hp] = heap[func_hp + pos++];
                 (*hp)++;
             }

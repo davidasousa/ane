@@ -1,0 +1,7 @@
+: sq dup * ;
+: rho 0 #n ;
+: ux [ 1 #n ] [ 0 #n ] ;
+{ 3 4 5 } rho sq
+clear
+{ 3 4 } ux
+q

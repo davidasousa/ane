@@ -97,16 +97,34 @@ add_string(double* heap, int* hp, int* heap_size, const char** arg, int strlen) 
     *hp += (strlen / 8 + 1); 
     return;
 }
-
+/*
+static void 
+skip_over(const char** ch, char delim) {
+    while(**ch != delim) 
+        (*ch)++;
+    (*ch)++;
+}
+*/
 static void
 write_udf(double* dest, double* heap, int* hp, udf* functions[], int udf_size, char* arg) {
 
     for(int idx = 0; idx < udf_size; idx++)
-        if(strcmp(arg, functions[idx] -> name) == 0)
-            for(int func_idx = 0; func_idx < functions[idx] -> args; func_idx++) {
+        if(strcmp(arg, functions[idx] -> name) == 0) {
+            /*
+            for(int func_idx = 0; func_idx < functions[idx] -> args; func_idx++) { 
                 dest[*hp] = heap[functions[idx] -> hp + func_idx];
                 (*hp)++;
             }
+            */
+            int func_hp = functions[idx] -> hp;
+            int pos = 0;
+
+            while(heap[func_hp + pos] != DELIMITER) {
+                dest[*hp] = heap[func_hp + pos++];
+                (*hp)++;
+            }
+        }
+    return;
 }
 
 static void
@@ -116,71 +134,6 @@ write_function(double val, char* arg, heap_struct* heap, udf_struct* udfs) { // 
     else
         heap -> arr[(heap -> hp)++] = val;
     return;
-}
-
-
-static void 
-skip_over(const char** ch, char delim) {
-    while(**ch != delim) 
-        (*ch)++;
-    (*ch)++;
-}
-
-
-static int
-write_function_heap(const char** ch, char delimiter, heap_struct* heap, udf_struct* udfs) {
-    char arg[100];
-    int char_elapsed = 0;
-    int instructions_num = 0;
-
-    while(**ch != delimiter) {
-        switch(**ch) {
-            case '[' :;
-                      skip_over(ch, ']');
-                      break;
-            case ' ' :;
-                      (*ch)++;
-                      break;
-            default :;
-                     if(is_char_num(**ch)) {
-                         double val;
-                         sscanf(*ch, "%lg%n", &val, &char_elapsed);
-                         heap -> arr[(heap -> hp)++] = val;
-                     } else {
-                         sscanf(*ch, "%s%n", arg, &char_elapsed);
-                         *ch += char_elapsed;
-                         write_function(process_arg(arg), arg, heap, udfs);
-                     }
-                     (*ch)++;
-                     instructions_num++;
-        }
-    }
-    heap -> arr[heap -> hp++] = DELIMITER;
-    return instructions_num;
-}
-
-static udf*
-makeudf(const char** input, heap_struct* heap, udf_struct* udfs) {
-    *input += 2;
-    int pos = heap -> hp;
-
-    // Reading Name
-    int len = find_len(*input,' ');
-    char* name = malloc(sizeof(*name) * (len + 1)); 
-    memcpy(name, *input, sizeof(*name) * (len + 1));
-    name[len] = '\0';
-    *input += len;
-
-    // Writing Function Contents To Mem
-    (*input)++;
-    int args = write_function_heap(input, ';', heap , udfs);
-    heap -> arr[(heap -> hp)++] = DELIMITER;
-
-    // Adding Udf To Udf Array
-    udf* new_udf = malloc(sizeof(*new_udf));
-    *new_udf = (udf) {.args = args, .name = name, .name_strlen = len, .hp = pos};
-
-    return new_udf;
 }
 
 static int
@@ -225,6 +178,75 @@ create_quotation(const char** ch, heap_struct* heap, udf_struct* udfs) {
     heap -> arr[heap -> hp++] = DELIMITER;
     return hp;
 }
+
+
+static int
+write_function_heap(const char** ch, char delimiter, heap_struct* heap, udf_struct* udfs) {
+    char arg[100];
+    int char_elapsed = 0;
+    int instructions_num = 0;
+
+    while(**ch != delimiter) {
+        switch(**ch) {
+            case '[' :;
+                      *ch += 1;
+                      heap -> arr[(heap -> hp)] = makeBox(heap -> hp + 1, QUOTATION);
+                      heap -> hp += 1;
+                      create_quotation(ch, heap, udfs);
+                      break;
+            case ' ' :;
+                      (*ch)++;
+                      break;
+            default :;
+                     if(is_char_num(**ch)) {
+                         double val;
+                         sscanf(*ch, "%lg%n", &val, &char_elapsed);
+                         heap -> arr[(heap -> hp)++] = val;
+                     } else {
+                         sscanf(*ch, "%s%n", arg, &char_elapsed);
+                         *ch += char_elapsed;
+                         write_function(process_arg(arg), arg, heap, udfs);
+
+                         for(int idx = 0; idx < udfs -> udf_count; idx++) {
+                            if(strcmp(arg, udfs -> functions[idx] -> name) == 0) {
+                                instructions_num += udfs -> functions[idx] -> args - 1;
+                            }
+                         }
+                     }
+                     (*ch)++;
+                     instructions_num++;
+
+
+        }
+    }
+    heap -> arr[heap -> hp++] = DELIMITER;
+    return instructions_num;
+}
+
+static udf*
+makeudf(const char** input, heap_struct* heap, udf_struct* udfs) {
+    *input += 2;
+    int pos = heap -> hp;
+
+    // Reading Name
+    int len = find_len(*input,' ');
+    char* name = malloc(sizeof(*name) * (len + 1)); 
+    memcpy(name, *input, sizeof(*name) * (len + 1));
+    name[len] = '\0';
+    *input += len;
+
+    // Writing Function Contents To Mem
+    (*input)++;
+    int args = write_function_heap(input, ';', heap , udfs);
+    heap -> arr[(heap -> hp)++] = DELIMITER;
+
+    // Adding Udf To Udf Array
+    udf* new_udf = malloc(sizeof(*new_udf));
+    *new_udf = (udf) {.args = args, .name = name, .name_strlen = len, .hp = pos};
+
+    return new_udf;
+}
+
 
 static int
 create_list(const char** ch, heap_struct* heap, udf_struct* udfs) { // requires creation of nested quoetes first and lists - fix
@@ -350,10 +372,7 @@ parseInput(double* call, const char* sp, heap_struct* heap, udf_struct* udfs) {
 
                      }
                      sp += char_elapsed;
-
         }
-
-
     }
     return call_size;
 }
